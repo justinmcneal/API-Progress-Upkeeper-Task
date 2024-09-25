@@ -18,9 +18,9 @@ use App\Http\Controllers\ContactController;
 |
 */
 
-Route::post('/login', [AuthManager::class, 'loginPost']);
-Route::post('/register', [AuthManager::class, 'registrationPost']);
-Route::post('/logout', [AuthManager::class, 'logout']);
+// Route::post('/login', [AuthManager::class, 'loginPost']);
+// Route::post('/register', [AuthManager::class, 'registrationPost']);
+// Route::post('/logout', [AuthManager::class, 'logout']);
 
 Route::get('/login', [AuthManager::class, 'login'])->name('login');
 Route::post('/loginPost', [AuthManager::class, 'loginPost'])->name('login.post');
