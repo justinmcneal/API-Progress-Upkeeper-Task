@@ -20,7 +20,7 @@
         <tr>
           <td style="text-align: center; padding: 20px;">
             <p style="color: #999; font-size: 14px;">Thank you for your feedback! We appreciate your insights and suggestions to help improve our application.</p>
-            <p style="color: #4CAF50; font-size: 16px; font-weight: bold; margin-top: 20px;">{{ config('puTask Team') }}</p>
+            <p style="color: #4CAF50; font-size: 16px; font-weight: bold; margin-top: 20px;">{{ config('app.name') }}</p>
           </td>
         </tr>
       </table>
