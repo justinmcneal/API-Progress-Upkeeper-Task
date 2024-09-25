@@ -22,7 +22,7 @@ class ContactController extends Controller
             $data = $request->validate([
                 'username' => 'required|max:255',
                 'email' => 'required|email',
-                'message' => 'required|min:10',
+                'message' => 'required|min:1',
             ]);
 
             // Save contact message to the database
