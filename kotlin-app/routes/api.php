@@ -4,8 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthManager;
 use App\Http\Controllers\ContactController;
-
-
+use App\Http\Controllers\ListshesController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,4 +30,10 @@ Route::get('/logout', [AuthManager::class, 'logout'])->name('logout');
 Route::get('/contact', [ContactController::class, 'show'])->name('contact.show');
 Route::get('/send', [ContactController::class, 'show'])->name('contact.send');
 Route::post('/send', [ContactController::class, 'send'])->name('contact.send');
+
+Route::get('/list', [ListshesController::class, 'list']);
+Route::post('/create', [ListshesController::class, 'create']);
+Route::delete('/delete/{id}', [ListshesController::class, 'delete']);
+
+
 
