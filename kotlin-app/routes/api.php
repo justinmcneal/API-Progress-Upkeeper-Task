@@ -34,6 +34,7 @@ Route::post('/send', [ContactController::class, 'send'])->name('contact.send');
 Route::get('/list', [ListshesController::class, 'list']);
 Route::post('/create', [ListshesController::class, 'create']);
 Route::delete('/delete/{id}', [ListshesController::class, 'delete']);
+Route::put('/update/{id}', [ListshesController::class, 'update']);
 
 
 
