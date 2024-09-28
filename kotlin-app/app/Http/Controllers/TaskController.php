@@ -10,15 +10,25 @@ class TaskController extends Controller
     // Get all tasks
     public function index()
     {
-        return Task::all();
+        try {
+            $tasks = Task::all();
+            return response()->json($tasks, 200);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching tasks: ' . $e->getMessage());
+            return response()->json(['error' => 'Error fetching tasks'], 500);
+        }
     }
 
     // Get a specific task
     public function show(Task $task)
     {
-        return response()->json($task, 200);
+        try {
+            return response()->json($task, 200);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching task: ' . $e->getMessage());
+            return response()->json(['error' => 'Error fetching task'], 500);
+        }
     }
-
     public function store(Request $request)
 {
     try {
@@ -48,28 +58,37 @@ class TaskController extends Controller
     // Update a task
     public function update(Request $request, $id)
     {
-        $task = Task::findOrFail($id);
+        try {
+            $task = Task::findOrFail($id);
 
-        $task->update($request->all());
+            $task->update($request->all());
 
-        if ($request->hasFile('attachment')) {
-            $path = $request->file('attachment')->store('attachments', 'public');
-            $task->attachment = $path;
+            if ($request->hasFile('attachment')) {
+                $path = $request->file('attachment')->store('attachments', 'public');
+                $task->attachment = $path;
+            }
+
+            $task->save();
+
+            return response()->json(['message' => 'Task updated successfully', 'task' => $task], 200);
+        } catch (\Exception $e) {
+            \Log::error('Error updating task: ' . $e->getMessage());
+            return response()->json(['error' => 'Error updating task'], 500);
         }
-
-        $task->save();
-
-        return response()->json(['message' => 'Task updated successfully', 'task' => $task], 200);
-
     }
 
     // Delete a task
     public function destroy($id)
     {
-        $task = Task::findOrFail($id);
-        $task->delete();
+        try {
+            $task = Task::findOrFail($id);
+            $task->delete();
 
-        return response()->json(null, 204);
+            return response()->json(null, 204);
+        } catch (\Exception $e) {
+            \Log::error('Error deleting task: ' . $e->getMessage());
+            return response()->json(['error' => 'Error deleting task'], 500);
+        }
     }
 }
 
