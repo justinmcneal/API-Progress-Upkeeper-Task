@@ -50,11 +50,14 @@ class TaskController extends Controller
     public function store(Request $request)
     {
         try {
+            Log::info('Starting validation for storing task', ['request' => $request->all()]);
+
             $request->validate([
-            'task_name' => 'required|string|max:255|unique:tasks,task_name', // Ensure tasks is the correct table
+            'task_name' => 'required|string|max:255|unique:tasks,task_name,collation,utf8mb4_unicode_ci',
+            'task_description' => 'required|max:255',
             'start_datetime' => 'required|date|before:end_datetime',
             'end_datetime' => 'required|date|after:start_datetime',
-            'attachment' => 'nullable|file|mimes:jpeg,png,pdf|max:2048',
+            'attachment' => 'nullable|file',
         ], [
             'task_name.unique' => 'A task with this name already exists. Please choose a different name.',
         ]);
