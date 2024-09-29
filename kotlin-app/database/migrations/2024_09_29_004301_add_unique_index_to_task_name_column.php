@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::table('tasks', function (Blueprint $table) {
             $table->unique('task_name');
-            $table->json('repeat_days')->nullable();
         });
     }
     
