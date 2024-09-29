@@ -53,7 +53,7 @@ class TaskController extends Controller
             Log::info('Starting validation for storing task', ['request' => $request->all()]);
 
             $request->validate([
-            'task_name' => 'required|string|max:255|unique:tasks,task_name,collation,utf8mb4_unicode_ci',
+            'task_name' => 'required|string|max:255|unique:tasks,task_name',
             'task_description' => 'required|max:255',
             'start_datetime' => 'required|date|before:end_datetime',
             'end_datetime' => 'required|date|after:start_datetime',
@@ -66,8 +66,9 @@ class TaskController extends Controller
 
         // Handle attachment upload
         if ($request->hasFile('attachment')) {
+            // Store the file in the 'public/attachments' directory and retrieve its path
             $path = $request->file('attachment')->store('attachments', 'public');
-            $task->attachment = $path;
+            $task->attachment = $path;  // Save the path to the task model
         }
 
         $task->save();
