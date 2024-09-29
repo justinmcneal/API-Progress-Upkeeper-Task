@@ -74,19 +74,19 @@ class TaskController extends Controller
         $task->save();
 
         return response()->json($task, 201);
-    } catch (ValidationException $e) {
-        Log::info('Validation failed: ' . json_encode($e->errors()));
-        return response()->json([
-            'message' => 'Validation error',
-            'errors' => $e->errors(),
-        ], 422);
-    } catch (\Exception $e) {
-        Log::error('Error storing task: ' . $e->getMessage());
-        return response()->json([
-            'message' => 'An error occurred while storing the task',
-            'error' => $e->getMessage(),
-        ], 500);
-    }
+        } catch (ValidationException $e) {
+            Log::info('Validation failed: ' . json_encode($e->errors()));
+            return response()->json([
+                'message' => 'Validation error',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Error storing task: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'An error occurred while storing the task',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
 }
 
 
@@ -140,17 +140,26 @@ class TaskController extends Controller
     public function destroy($id)
     {
         try {
+            // Find the task by its ID or throw a ModelNotFoundException
             $task = Task::findOrFail($id);
+        
+            // Delete the task
             $task->delete();
 
-            return response()->json(null, 204);
+            // Return a 200 OK response with a success message
+            return response()->json([
+                'message' => 'Task deleted successfully',
+                'task' => $task,  // Optionally include the deleted task's details
+            ], 200);
         } catch (ModelNotFoundException $e) {
+            // Log and return a 404 response if the task was not found
             Log::warning("Task not found with ID: $id during deletion");
             return response()->json([
                 'message' => 'Task not found',
                 'error' => $e->getMessage(),
             ], 404);
         } catch (\Exception $e) {
+            // Log and return a 500 response for any other exceptions
             Log::error("Error deleting task with ID $id: " . $e->getMessage());
             return response()->json([
                 'message' => 'An error occurred while deleting the task',
