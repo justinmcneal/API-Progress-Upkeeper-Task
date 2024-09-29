@@ -53,27 +53,38 @@ class TaskController extends Controller
             Log::info('Starting validation for storing task', ['request' => $request->all()]);
 
             $request->validate([
-            'task_name' => 'required|string|max:255|unique:tasks,task_name',
-            'task_description' => 'required|max:255',
-            'start_datetime' => 'required|date|before:end_datetime',
-            'end_datetime' => 'required|date|after:start_datetime',
-            'attachment' => 'nullable|file',
-        ], [
-            'task_name.unique' => 'A task with this name already exists. Please choose a different name.',
-        ]);
+                'task_name' => 'required|string|max:255|unique:tasks,task_name',
+                'task_description' => 'required|max:255',
+                'start_datetime' => 'required|date|before:end_datetime',
+                'end_datetime' => 'required|date|after:start_datetime',
+                'attachment' => 'nullable|file',
+                'repeat_days' => 'nullable|array',
+                'repeat_days.*' => 'in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
+            ], [
+                'task_name.unique' => 'A task with this name already exists. Please choose a different name.',
+            ]);
 
-        $task = new Task($request->all());
+            $task = new Task($request->all());
 
-        // Handle attachment upload
-        if ($request->hasFile('attachment')) {
-            // Store the file in the 'public/attachments' directory and retrieve its path
-            $path = $request->file('attachment')->store('attachments', 'public');
-            $task->attachment = $path;  // Save the path to the task model
-        }
+            // Handle attachment upload
+            if ($request->hasFile('attachment')) {
+                $path = $request->file('attachment')->store('attachments', 'public');
+                $task->attachment = $path;  // Save the path to the task model
+            }
 
-        $task->save();
+            $task->save();
 
-        return response()->json($task, 201);
+            // Handle repeat_days logic (if applicable)
+            if ($request->filled('repeat_days')) {
+                foreach ($request->repeat_days as $day) {
+                    $newTask = $task->replicate();  // Create a copy of the task
+                    $newTask->start_datetime = $this->calculateNewStartDate($request->start_datetime, $day);
+                    $newTask->end_datetime = $this->calculateNewEndDate($request->end_datetime, $day);
+                    $newTask->save();
+                }
+            }
+
+            return response()->json($task, 201);
         } catch (ValidationException $e) {
             Log::info('Validation failed: ' . json_encode($e->errors()));
             return response()->json([
@@ -87,8 +98,7 @@ class TaskController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
-}
-
+    }
 
     // Update a task
     public function update(Request $request, $id)
@@ -98,18 +108,38 @@ class TaskController extends Controller
 
             $request->validate([
                 'task_name' => 'sometimes|required|string|max:255',
+                'task_description' => 'sometimes|required|max:255',
                 'start_datetime' => 'sometimes|required|date|before:end_datetime',
                 'end_datetime' => 'sometimes|required|date|after:start_datetime',
-                'attachment' => 'nullable|file|mimes:jpeg,png,pdf|max:2048',
+                'attachment' => 'nullable|file',
+                'repeat_days' => 'nullable|array',
+                'repeat_days.*' => 'in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
             ]);
 
-            $task->update($request->all());
+            // Update the task
+            if ($request->has('task_name')) {
+                $task->task_name = $request->task_name;
+            }
+
+            if ($request->has('task_description')) {
+                $task->task_description = $request->task_description;
+            }
+
+            if ($request->has('start_datetime')) {
+                $task->start_datetime = $request->start_datetime;
+            }
+
+            if ($request->has('end_datetime')) {
+                $task->end_datetime = $request->end_datetime;
+            }
 
             // Handle attachment update
             if ($request->hasFile('attachment')) {
                 $path = $request->file('attachment')->store('attachments', 'public');
-                $task->attachment = $path;
+                $task->attachment = $path;  // Update attachment path
             }
+
+            $task->save();
 
             return response()->json([
                 'message' => 'Task updated successfully',
@@ -140,31 +170,45 @@ class TaskController extends Controller
     public function destroy($id)
     {
         try {
-            // Find the task by its ID or throw a ModelNotFoundException
             $task = Task::findOrFail($id);
-        
-            // Delete the task
             $task->delete();
 
-            // Return a 200 OK response with a success message
             return response()->json([
                 'message' => 'Task deleted successfully',
-                'task' => $task,  // Optionally include the deleted task's details
+                'task' => $task,
             ], 200);
         } catch (ModelNotFoundException $e) {
-            // Log and return a 404 response if the task was not found
             Log::warning("Task not found with ID: $id during deletion");
             return response()->json([
                 'message' => 'Task not found',
                 'error' => $e->getMessage(),
             ], 404);
         } catch (\Exception $e) {
-            // Log and return a 500 response for any other exceptions
             Log::error("Error deleting task with ID $id: " . $e->getMessage());
             return response()->json([
                 'message' => 'An error occurred while deleting the task',
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    // Method to calculate new start date
+    private function calculateNewStartDate($startDate, $day) 
+    {
+        // Convert to Carbon instance
+        $carbonStartDate = \Carbon\Carbon::parse($startDate);
+        $targetDay = \Carbon\Carbon::now()->next($day); // Get the next occurrence of the target day
+
+        return $targetDay->setTime($carbonStartDate->hour, $carbonStartDate->minute);
+    }
+
+    // Method to calculate new end date
+    private function calculateNewEndDate($endDate, $day) 
+    {
+        // Similar logic for end date
+        $carbonEndDate = \Carbon\Carbon::parse($endDate);
+        $targetDay = \Carbon\Carbon::now()->next($day); // Get the next occurrence of the target day
+
+        return $targetDay->setTime($carbonEndDate->hour, $carbonEndDate->minute);
     }
 }

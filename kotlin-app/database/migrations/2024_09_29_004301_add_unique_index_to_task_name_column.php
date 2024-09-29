@@ -11,18 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('task_name_column', function (Blueprint $table) {
-            //
+        Schema::table('tasks', function (Blueprint $table) {
+            $table->unique('task_name');
+            $table->json('repeat_days')->nullable();
         });
     }
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    
+    public function down()
     {
-        Schema::table('task_name_column', function (Blueprint $table) {
-            //
+        Schema::table('tasks', function (Blueprint $table) {
+            $table->dropUnique('tasks_task_name_unique');
+            $table->dropColumn('repeat_days');
         });
     }
 };
