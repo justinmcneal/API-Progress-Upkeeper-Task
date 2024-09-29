@@ -51,37 +51,40 @@ class TaskController extends Controller
     {
         try {
             $request->validate([
-                'task_name' => 'required|string|max:255',
-                'start_datetime' => 'required|date|before:end_datetime',
-                'end_datetime' => 'required|date|after:start_datetime',
-                'attachment' => 'nullable|file|mimes:jpeg,png,pdf|max:2048', // Example for file validation
-            ]);
+            'task_name' => 'required|string|max:255|unique:tasks,task_name', // Ensure tasks is the correct table
+            'start_datetime' => 'required|date|before:end_datetime',
+            'end_datetime' => 'required|date|after:start_datetime',
+            'attachment' => 'nullable|file|mimes:jpeg,png,pdf|max:2048',
+        ], [
+            'task_name.unique' => 'A task with this name already exists. Please choose a different name.',
+        ]);
 
-            $task = new Task($request->all());
+        $task = new Task($request->all());
 
-            // Handle attachment upload
-            if ($request->hasFile('attachment')) {
-                $path = $request->file('attachment')->store('attachments', 'public');
-                $task->attachment = $path;
-            }
-
-            $task->save();
-
-            return response()->json($task, 201);
-        } catch (ValidationException $e) {
-            Log::info('Validation failed: ' . json_encode($e->errors()));
-            return response()->json([
-                'message' => 'Validation error',
-                'errors' => $e->errors(),
-            ], 422);
-        } catch (\Exception $e) {
-            Log::error('Error storing task: ' . $e->getMessage());
-            return response()->json([
-                'message' => 'An error occurred while storing the task',
-                'error' => $e->getMessage(),
-            ], 500);
+        // Handle attachment upload
+        if ($request->hasFile('attachment')) {
+            $path = $request->file('attachment')->store('attachments', 'public');
+            $task->attachment = $path;
         }
+
+        $task->save();
+
+        return response()->json($task, 201);
+    } catch (ValidationException $e) {
+        Log::info('Validation failed: ' . json_encode($e->errors()));
+        return response()->json([
+            'message' => 'Validation error',
+            'errors' => $e->errors(),
+        ], 422);
+    } catch (\Exception $e) {
+        Log::error('Error storing task: ' . $e->getMessage());
+        return response()->json([
+            'message' => 'An error occurred while storing the task',
+            'error' => $e->getMessage(),
+        ], 500);
     }
+}
+
 
     // Update a task
     public function update(Request $request, $id)
