@@ -84,7 +84,7 @@ class TaskController extends Controller
                 }
             }
 
-            return response()->json($task, 201);
+        return response()->json($task, 201);
         } catch (ValidationException $e) {
             Log::info('Validation failed: ' . json_encode($e->errors()));
             return response()->json([
@@ -98,7 +98,8 @@ class TaskController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
-    }
+}
+
 
     // Update a task
     public function update(Request $request, $id)
@@ -173,9 +174,10 @@ class TaskController extends Controller
             $task = Task::findOrFail($id);
             $task->delete();
 
+            // Return a 200 OK response with a success message
             return response()->json([
                 'message' => 'Task deleted successfully',
-                'task' => $task,
+                'task' => $task,  // Optionally include the deleted task's details
             ], 200);
         } catch (ModelNotFoundException $e) {
             Log::warning("Task not found with ID: $id during deletion");
