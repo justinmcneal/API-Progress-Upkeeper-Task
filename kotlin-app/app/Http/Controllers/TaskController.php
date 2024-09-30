@@ -89,50 +89,64 @@ class TaskController extends Controller
         }
     }
 
+   
     public function update(Request $request, $id)
-    {
-        try {
-            $task = Task::findOrFail($id);
+{
+    try {
+        // Find the task by ID
+        $task = Task::findOrFail($id);
 
-            $request->validate([
-                'task_name' => 'sometimes|required|string|max:255',
-                'start_datetime' => 'sometimes|required|date|before:end_datetime',
-                'end_datetime' => 'sometimes|required|date|after:start_datetime',
-                'attachment' => 'nullable|file|mimes:jpeg,png,pdf|max:2048',
-            ]);
+        // Validate the request
+        $request->validate([
+            'task_name' => 'sometimes|string|max:255',
+            'task_description' => 'sometimes|max:255',
+            'start_datetime' => 'sometimes|date|before:end_datetime',
+            'end_datetime' => 'sometimes|date|after:start_datetime',
+            'attachment' => 'nullable|file',
+        ]);
 
-            $task->update($request->all());
-
-            // Handle attachment update
-            if ($request->hasFile('attachment')) {
-                $path = $request->file('attachment')->store('attachments', 'public');
-                $task->attachment = $path;
-            }
-
-            return response()->json([
-                'message' => 'Task updated successfully',
-                'task' => $task,
-            ], 200);
-        } catch (ValidationException $e) {
-            Log::info('Validation failed during update: ' . json_encode($e->errors()));
-            return response()->json([
-               'message' => 'Validation error',
-               'errors' => $e->errors(),
-            ], 422);
-        } catch (ModelNotFoundException $e) {
-            Log::warning("Task not found with ID: $id during update");
-            return response()->json([
-                'message' => 'Task not found',
-                'error' => $e->getMessage(),
-            ], 404);
-        } catch (\Exception $e) {
-            Log::error("Error updating task with ID $id: " . $e->getMessage());
-            return response()->json([
-                'message' => 'An error occurred while updating the task',
-                'error' => $e->getMessage(),
-            ], 500);
+        if ($request->hasFile('attachment')) {
+            $path = $request->file('attachment')->store('attachments', 'public');
+            $task->attachment = $path;  // Set the new path for the attachment
         }
-    }   
+        
+        // Then update the task with other fields
+        $task->update($request->only([
+            'task_name', 
+            'task_description', 
+            'start_datetime', 
+            'end_datetime',
+            'send_notification'
+        ]));
+        
+        // Save the task with the new attachment
+        $task->save();
+
+        return response()->json([
+            'message' => 'Task updated successfully',
+            'task' => $task,
+        ], 200);
+        
+    } catch (ValidationException $e) {
+        Log::info('Validation failed during update: ' . json_encode($e->errors()));
+        return response()->json([
+           'message' => 'Validation error',
+           'errors' => $e->errors(),
+        ], 422);
+    } catch (ModelNotFoundException $e) {
+        Log::warning("Task not found with ID: $id during update");
+        return response()->json([
+            'message' => 'Task not found',
+            'error' => $e->getMessage(),
+        ], 404);
+    } catch (\Exception $e) {
+        Log::error("Error updating task with ID $id: " . $e->getMessage());
+        return response()->json([
+            'message' => 'An error occurred while updating the task',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+}
 
     public function destroy($id)
     {
