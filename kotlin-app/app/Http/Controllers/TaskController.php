@@ -60,6 +60,8 @@ class TaskController extends Controller
                 'start_datetime' => 'required|date|before:end_datetime',
                 'end_datetime' => 'required|date|after:start_datetime',
                 'attachment' => 'nullable|file',
+                'repeat_days' => 'nullable|array', // Validate repeat_days as an array
+                'repeat_days.*' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday' // Optional, restrict values
             ], [
                 'task_name.unique' => 'A task with this name already exists. Please choose a different name.',
             ]);
@@ -71,6 +73,7 @@ class TaskController extends Controller
                 $task->attachment = $path;
             }
 
+            $task->repeat_days = $request->input('repeat_days'); // Set repeat_days if provided
             $task->save();
 
             return response()->json($task, 201);
@@ -87,56 +90,60 @@ class TaskController extends Controller
         }
     }
 
+    // Update an existing task
     public function update(Request $request, $id)
-{
-    try {
-        $task = Task::findOrFail($id);
+    {
+        try {
+            $task = Task::findOrFail($id);
 
-        // Validate input
-        $validatedData = $request->validate([
-            'task_name' => 'sometimes|string|max:255',
-            'task_description' => 'sometimes|max:255',
-            'start_datetime' => 'sometimes|date|before:end_datetime',
-            'end_datetime' => 'sometimes|date|after:start_datetime',
-            'attachment' => 'nullable|file',
-        ]);
+            // Validate input
+            $validatedData = $request->validate([
+                'task_name' => 'sometimes|string|max:255',
+                'task_description' => 'sometimes|max:255',
+                'start_datetime' => 'sometimes|date|before:end_datetime',
+                'end_datetime' => 'sometimes|date|after:start_datetime',
+                'attachment' => 'nullable|file',
+                'repeat_days' => 'nullable|array', // Validate repeat_days as an array
+                'repeat_days.*' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday' // Optional, restrict values
+            ]);
 
-        // Handle the file upload manually (attachment)
-        if ($request->hasFile('attachment')) {
-            if ($task->attachment) {
-                Storage::disk('public')->delete($task->attachment);
+            // Handle the file upload manually (attachment)
+            if ($request->hasFile('attachment')) {
+                if ($task->attachment) {
+                    Storage::disk('public')->delete($task->attachment);
+                }
+
+                $path = $request->file('attachment')->store('attachments', 'public');
+                $validatedData['attachment'] = $path;
             }
 
-            $path = $request->file('attachment')->store('attachments', 'public');
-            $validatedData['attachment'] = $path;
+            // Manually merge validated data into the task
+            $task->fill($validatedData);
+            $task->repeat_days = $request->input('repeat_days', $task->repeat_days); // Update repeat_days if provided
+            $task->save();
+
+            return response()->json([
+                'message' => 'Task updated successfully',
+                'task' => $task,
+            ], 200);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation error',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Task not found',
+                'error' => $e->getMessage(),
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'An error occurred while updating the task',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-
-        // Manually merge validated data into the task
-        $task->fill($validatedData);
-        $task->save();
-
-        return response()->json([
-            'message' => 'Task updated successfully',
-            'task' => $task,
-        ], 200);
-
-    } catch (ValidationException $e) {
-        return response()->json([
-            'message' => 'Validation error',
-            'errors' => $e->errors(),
-        ], 422);
-    } catch (ModelNotFoundException $e) {
-        return response()->json([
-            'message' => 'Task not found',
-            'error' => $e->getMessage(),
-        ], 404);
-    } catch (\Exception $e) {
-        return response()->json([
-            'message' => 'An error occurred while updating the task',
-            'error' => $e->getMessage(),
-        ], 500);
     }
-}
 
     // Delete a task
     public function destroy($id)

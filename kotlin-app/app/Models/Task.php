@@ -22,4 +22,5 @@ class Task extends Model
     protected $casts = [
         'repeat_days' => 'array',
     ];
+    
 }

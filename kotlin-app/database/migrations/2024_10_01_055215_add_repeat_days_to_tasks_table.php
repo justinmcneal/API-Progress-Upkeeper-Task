@@ -9,17 +9,18 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up()
     {
         Schema::table('tasks', function (Blueprint $table) {
-            $table->unique('task_name');
+            $table->json('repeat_days')->nullable(); // Storing repeat_days as JSON
         });
     }
-    
+
     public function down()
     {
         Schema::table('tasks', function (Blueprint $table) {
-            $table->dropUnique('tasks_task_name_unique');
+            $table->dropColumn('repeat_days');
         });
     }
+
 };
