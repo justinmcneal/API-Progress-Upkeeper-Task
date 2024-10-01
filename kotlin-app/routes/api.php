@@ -56,7 +56,7 @@ Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');  //
 Route::get('/tasks/{id}', [TaskController::class, 'show'])->name('tasks.show');  // Get a specific task
 Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store');  // Create a new task
 Route::post('/tasks/update/{id}', [TaskController::class, 'update']);
-Route::put('/tasks/update/{id}', [TaskController::class, 'update'])->name('tasks.update');  // Update a task
+Route::put('/tasks/{id}', [TaskController::class, 'update'])->name('tasks.update'); // Update a task
 Route::delete('/tasks/{id}', [TaskController::class, 'destroy'])->name('tasks.destroy');  // Delete a task
 
 

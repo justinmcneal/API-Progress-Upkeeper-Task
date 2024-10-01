@@ -4,11 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Task;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification; // Import the Notification facade
+use App\Notifications\TaskNotification; // Import your custom notification class
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-
 class TaskController extends Controller
 {
     // Get all tasks
@@ -48,39 +49,45 @@ class TaskController extends Controller
     }
 
     // Store a new task
-    public function store(Request $request)
-    {
-        try {
-            \Log::info('Incoming request data:', $request->all());
-            \Log::info('Incoming request headers:', $request->headers->all());  // Log headers
+public function store(Request $request)
+{
+    try {
+        \Log::info('Incoming request data:', $request->all());
+        \Log::info('Incoming request headers:', $request->headers->all());
 
-            $request->validate([
-                'task_name' => 'required|string|max:255|unique:tasks,task_name',
-                'task_description' => 'required|max:255',
-                'start_datetime' => 'required|date|before:end_datetime',
-                'end_datetime' => 'required|date|after:start_datetime',
-                'attachment' => 'nullable|file',
-                'repeat_days' => 'nullable|array', // Validate repeat_days as an array
-                'repeat_days.*' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday' // Optional, restrict values
-            ], [
-                'task_name.unique' => 'A task with this name already exists. Please choose a different name.',
-            ]);
+        $request->validate([
+            'task_name' => 'required|string|max:255|unique:tasks,task_name',
+            'task_description' => 'required|max:255',
+            'start_datetime' => 'required|date|before:end_datetime',
+            'end_datetime' => 'required|date|after:start_datetime',
+            'attachment' => 'nullable|file',
+            'repeat_days' => 'nullable|array',
+            'repeat_days.*' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday'
+        ], [
+            'task_name.unique' => 'A task with this name already exists. Please choose a different name.',
+        ]);
 
-            $task = new Task($request->all());
+        $task = new Task($request->all());
 
-            if ($request->hasFile('attachment')) {
-                $path = $request->file('attachment')->store('attachments', 'public');
-                $task->attachment = $path;
-            }
+        if ($request->hasFile('attachment')) {
+            $path = $request->file('attachment')->store('attachments', 'public');
+            $task->attachment = $path;
+        }
 
-            $task->repeat_days = $request->input('repeat_days'); // Set repeat_days if provided
-            $task->save();
+        $task->repeat_days = $request->input('repeat_days');
+        $task->save();
 
-            return response()->json($task, 201);
+        // Check if user is authenticated before sending notification
+        $user = auth()->user();
+        if ($user) {
+            Notification::send($user, new TaskNotification($task));
+        }
+
+        return response()->json($task, 201);
         } catch (ValidationException $e) {
             return response()->json([
-               'message' => 'Validation error',
-               'errors' => $e->errors(),
+                'message' => 'Validation error',
+                'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
@@ -103,8 +110,8 @@ class TaskController extends Controller
                 'start_datetime' => 'sometimes|date|before:end_datetime',
                 'end_datetime' => 'sometimes|date|after:start_datetime',
                 'attachment' => 'nullable|file',
-                'repeat_days' => 'nullable|array', // Validate repeat_days as an array
-                'repeat_days.*' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday' // Optional, restrict values
+                'repeat_days' => 'nullable|array',
+                'repeat_days.*' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday'
             ]);
 
             // Handle the file upload manually (attachment)
@@ -119,14 +126,19 @@ class TaskController extends Controller
 
             // Manually merge validated data into the task
             $task->fill($validatedData);
-            $task->repeat_days = $request->input('repeat_days', $task->repeat_days); // Update repeat_days if provided
+            $task->repeat_days = $request->input('repeat_days', $task->repeat_days);
             $task->save();
+
+            // Check if user is authenticated before sending notification
+            $user = auth()->user();
+            if ($user) {
+                Notification::send($user, new TaskNotification($task));
+            }
 
             return response()->json([
                 'message' => 'Task updated successfully',
                 'task' => $task,
             ], 200);
-
         } catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Validation error',
