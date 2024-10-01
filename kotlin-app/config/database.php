@@ -147,6 +147,11 @@ return [
             'database' => env('REDIS_CACHE_DB', '1'),
         ],
 
+        DB::listen(function ($query) {
+            Log::info($query->sql);
+        })
+        
+
     ],
 
 ];
