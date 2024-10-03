@@ -60,7 +60,7 @@ public function store(Request $request)
             'task_description' => 'required|max:255',
             'start_datetime' => 'required|date|before:end_datetime',
             'end_datetime' => 'required|date|after:start_datetime',
-            'attachment' => 'nullable|file',
+            'attachment' => 'sometimes|file',
             'repeat_days' => 'nullable|array',
             'repeat_days.*' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday'
         ], [
@@ -69,7 +69,8 @@ public function store(Request $request)
 
         $task = new Task($request->all());
 
-        if ($request->hasFile('attachment')) {
+         // Handle the file upload if there's an attachment
+         if ($request->hasFile('attachment')) {
             $path = $request->file('attachment')->store('attachments', 'public');
             $task->attachment = $path;
         }
@@ -109,23 +110,26 @@ public function store(Request $request)
                 'task_description' => 'sometimes|max:255',
                 'start_datetime' => 'sometimes|date|before:end_datetime',
                 'end_datetime' => 'sometimes|date|after:start_datetime',
-                'attachment' => 'nullable|file',
                 'repeat_days' => 'nullable|array',
                 'repeat_days.*' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday'
             ]);
 
-            // Handle the file upload manually (attachment)
-            if ($request->hasFile('attachment')) {
-                if ($task->attachment) {
-                    Storage::disk('public')->delete($task->attachment);
-                }
-
-                $path = $request->file('attachment')->store('attachments', 'public');
-                $validatedData['attachment'] = $path;
-            }
 
             // Manually merge validated data into the task
             $task->fill($validatedData);
+
+            // Handle the file upload if there's an attachment
+        if ($request->hasFile('attachment')) {
+            // Delete the old file if it exists
+            if ($task->attachment) {
+                Storage::disk('public')->delete($task->attachment);
+            }
+
+            // Store the new attachment and update the task
+            $path = $request->file('attachment')->store('attachments', 'public');
+            $task->attachment = $path;
+        }
+
             $task->repeat_days = $request->input('repeat_days', $task->repeat_days);
             $task->save();
 
@@ -156,6 +160,59 @@ public function store(Request $request)
             ], 500);
         }
     }
+
+    public function updateAttachment(Request $request, $id)
+    {
+        try {
+            // Log incoming request data for debugging
+            \Log::info('Request data:', $request->all());
+            \Log::info('Files:', $request->file());
+    
+            // Find the task by ID
+            $task = Task::findOrFail($id);
+    
+            // Validate that the request has a file
+            $request->validate([
+                'attachment' => 'sometimes|file',
+            ]);
+    
+            // Handle the file upload
+        if ($request->hasFile('attachment')) {
+            // Delete the old attachment if it exists
+            if ($task->attachment) {
+                Storage::disk('public')->delete($task->attachment);
+            }
+
+            // Store the new attachment
+            \Log::info('File is present');
+            $path = $request->file('attachment')->store('attachments', 'public');
+            $task->attachment = $path;
+            $task->save();
+    
+                // Return success response
+                return response()->json([
+                    'message' => 'Attachment updated successfully',
+                    'task' => $task,
+                ], 200);
+            } else {
+                \Log::info('No file detected');
+                return response()->json([
+                    'message' => 'No file provided',
+                ], 400);
+            }
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Task not found',
+                'error' => $e->getMessage(),
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'An error occurred while updating the attachment',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+    
 
     // Delete a task
     public function destroy($id)
