@@ -15,7 +15,6 @@ class Task extends Model
         'start_datetime',
         'end_datetime',
         'repeat_days',
-        'attachment', // if you are allowing attachment field to be updated
     ];
 
     protected $casts = [

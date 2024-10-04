@@ -21,6 +21,8 @@ return new class extends Migration
         Schema::table('tasks', function (Blueprint $table) {
             $table->dropColumn('repeat_days');
         });
+        Schema::dropIfExists('repeat_days');
+
     }
 
 };

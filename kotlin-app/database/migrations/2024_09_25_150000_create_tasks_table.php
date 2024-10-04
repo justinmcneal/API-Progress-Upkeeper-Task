@@ -15,7 +15,6 @@ return new class extends Migration
             $table->timestamp('start_datetime');
             $table->timestamp('end_datetime')->nullable();
             $table->json('repeat_days')->nullable();
-            $table->string('attachment')->nullable();
             $table->boolean('send_notification')->default(false);
             $table->timestamps();
         });
