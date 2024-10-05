@@ -78,7 +78,21 @@ public function store(Request $request)
             Notification::send($user, new TaskNotification($task));
         }
 
-        return response()->json($task, 201);
+        return response()->json([
+            'success' => true,
+            'message' => 'Task created successfully',
+            'task' => [
+                'id' => $task->id,
+                'task_name' => $task->task_name,
+                'task_description' => $task->task_description,
+                'start_datetime' => $task->start_datetime->setTimezone('Asia/Manila')->toDateTimeString(),
+                'end_datetime' => $task->end_datetime->setTimezone('Asia/Manila')->toDateTimeString(),
+                'repeat_days' => $task->repeat_days,
+                'isChecked' => $task->isChecked,
+                'created_at' => $task->created_at->setTimezone('Asia/Manila')->toDateTimeString(),  // Convert created_at
+                'updated_at' => $task->updated_at->setTimezone('Asia/Manila')->toDateTimeString()   // Convert updated_at
+            ]
+        ], 201);
         
     } catch (ValidationException $e) {
         return response()->json([
@@ -94,53 +108,71 @@ public function store(Request $request)
 }
 
 
-    // Update an existing task
-    public function update(Request $request, $id)
-    {
-        try {
-            $task = Task::findOrFail($id);
+// Update an existing task
+public function update(Request $request, $id)
+{
+    try {
+        $task = Task::findOrFail($id);
 
-            // Validate input
-            $validatedData = $request->validate([
-                'task_name' => 'sometimes|string|max:255',
-                'task_description' => 'sometimes|max:255',
-                'start_datetime' => 'sometimes|date|before:end_datetime',
-                'end_datetime' => 'sometimes|date|after:start_datetime',
-                'repeat_days' => 'nullable|array',
-                'repeat_days.*' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday'
-            ]);
+        // Validate input
+        $validatedData = $request->validate([
+            'task_name' => 'sometimes|string|max:255',
+            'task_description' => 'sometimes|max:255',
+            'start_datetime' => 'sometimes|date|before:end_datetime',
+            'end_datetime' => 'sometimes|date|after:start_datetime',
+            'repeat_days' => 'nullable|array',
+            'repeat_days.*' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday'
+        ]);
 
+        // Manually merge validated data into the task
+        $task->fill($validatedData);
 
-            // Manually merge validated data into the task
-            $task->fill($validatedData);
+        // Save the updated task
+        $task->save();
 
-            // Check if user is authenticated before sending notification
-            $user = auth()->user();
-            if ($user) {
-                Notification::send($user, new TaskNotification($task));
-            }
-
-            return response()->json([
-                'message' => 'Task updated successfully',
-                'task' => $task,
-            ], 200);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'message' => 'Validation error',
-                'errors' => $e->errors(),
-            ], 422);
-        } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'message' => 'Task not found',
-                'error' => $e->getMessage(),
-            ], 404);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'An error occurred while updating the task',
-                'error' => $e->getMessage(),
-            ], 500);
+        // Check if user is authenticated before sending notification
+        $user = auth()->user();
+        if ($user) {
+            Notification::send($user, new TaskNotification($task));
         }
+
+        // Return the updated task with timestamps converted to Asia/Manila timezone
+        return response()->json([
+            'success' => true,
+            'message' => 'Task updated successfully',
+            'updated_task' => [
+                'id' => $task->id,
+                'task_name' => $task->task_name,
+                'task_description' => $task->task_description,
+                'start_datetime' => $task->start_datetime->setTimezone('Asia/Manila')->toDateTimeString(),
+                'end_datetime' => $task->end_datetime->setTimezone('Asia/Manila')->toDateTimeString(),
+                'repeat_days' => $task->repeat_days,
+                'isChecked' => $task->isChecked,
+                'created_at' => $task->created_at->setTimezone('Asia/Manila')->toDateTimeString(),  // Convert created_at
+                'updated_at' => $task->updated_at->setTimezone('Asia/Manila')->toDateTimeString()   // Convert updated_at
+            ]
+        ], 200);
+
+    } catch (ValidationException $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Validation error',
+            'errors' => $e->errors(),
+        ], 422);
+    } catch (ModelNotFoundException $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Task not found',
+            'error' => $e->getMessage(),
+        ], 404);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'An error occurred while updating the task',
+            'error' => $e->getMessage(),
+        ], 500);
     }
+}
 
     // Delete a task
     public function destroy($id)

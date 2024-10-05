@@ -19,7 +19,8 @@ class Task extends Model
 
     protected $casts = [
         'repeat_days' => 'array',
-        'start_date_time' => 'date_time'
+        'start_datetime' => 'datetime',
+        'end_datetime' => 'datetime',   // Ensure this is cast as a datetime
     ];
     
 }
