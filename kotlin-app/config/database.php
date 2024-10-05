@@ -17,6 +17,7 @@ return [
 
     'default' => env('DB_CONNECTION', 'mysql'),
 
+
     /*
     |--------------------------------------------------------------------------
     | Database Connections
@@ -145,6 +146,8 @@ return [
             'port' => env('REDIS_PORT', '6379'),
             'database' => env('REDIS_CACHE_DB', '1'),
         ],
+
+        
 
     ],
 
