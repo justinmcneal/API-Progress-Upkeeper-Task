@@ -1,5 +1,7 @@
 <?php
 
+// app/Mail/OtpMail.php
+
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
@@ -10,27 +12,21 @@ class OtpMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $otp; // Variable to hold OTP value
+    public $otp;
 
-    /**
-     * Create a new message instance.
-     *
-     * @return void
-     */
     public function __construct($otp)
     {
-        $this->otp = $otp; // Assign OTP value
+        $this->otp = $otp;
     }
 
-    /**
-     * Build the message.
-     *
-     * @return $this
-     */
     public function build()
     {
+        if (empty($this->otp)) {
+            throw new \Exception('OTP value is empty');
+        }
+
         return $this->subject('Your OTP Code')
-                    ->view('emails.otp') // This is the correct method (view not views)
-                    ->with('otp', $this->otp); // Pass OTP to the view
+                    ->view('emails.otp')
+                    ->with('otp', $this->otp);
     }
 }

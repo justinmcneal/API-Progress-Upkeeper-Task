@@ -17,20 +17,31 @@ class ContactController extends Controller
 
     public function send(Request $request)
     {
+        $validationRules = [
+            'username' => 'required|max:255',
+            'email' => 'required|email',
+            'message' => 'required|min:1',
+        ];
+    
+        $validator = Validator::make($request->all(), $validationRules);
+    
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()->all(),
+            ], 422);
+        }
+    
         try {
             // Validate incoming request data
-            $data = $request->validate([
-                'username' => 'required|max:255',
-                'email' => 'required|email',
-                'message' => 'required|min:1',
-            ]);
-
+            $data = $request->validate($validationRules);
+    
             // Save contact message to the database
             Contact::create($data);
-
+    
             // Send the email
             Mail::to('lumpiajavarice@gmail.com')->send(new ContactUs($data));
-
+    
             return response()->json(['message' => 'Great! Successfully sent email and saved contact'], 200);
         } catch (\Swift_TransportException $e) {
             // Email sending failed (due to server issue, SMTP misconfiguration, etc.)
