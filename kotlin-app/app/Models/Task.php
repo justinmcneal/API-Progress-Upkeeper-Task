@@ -22,6 +22,7 @@ class Task extends Model
         'end_datetime' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'repeat_days' => 'array',
     ];
     
 }
