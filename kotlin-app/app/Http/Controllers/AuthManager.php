@@ -84,6 +84,65 @@ class AuthManager extends Controller
             ], 500)->header('Content-Type', 'application/json');
         }
     }
+
+    public function checkEmail(Request $request)
+{
+    // Validate the email field
+    $request->validate([
+        'email' => 'required|email'
+    ]);
+
+    // Check if the email exists in the users table
+    $emailExists = User::where('email', $request->email)->exists();
+
+    if ($emailExists) {
+        // Generate a random 6-digit OTP
+        $otp = random_int(100000, 999999);
+
+        // Save the OTP to the database (or session/cache)
+        // Example: Storing in the session (for simplicity)
+        session(['otp' => $otp, 'otp_expires_at' => now()->addMinutes(10)]);
+
+        // Send OTP via email
+        \Mail::to($request->email)->send(new \App\Mail\OtpMail($otp));
+
+        return response()->json([
+            'message' => 'Email exists, OTP sent',
+            'email_exists' => true
+        ], 200);
+    } else {
+        return response()->json([
+            'message' => 'Email does not exist',
+            'email_exists' => false
+        ], 404);
+    }
+}
+
+
+public function verifyOtp(Request $request)
+{
+    $request->validate([
+        'otp' => 'required|numeric',
+    ]);
+
+    // Retrieve OTP and expiration time from session
+    $sessionOtp = session('otp');
+    $expiresAt = session('otp_expires_at');
+
+    // Check if OTP is valid and not expired
+    if ($sessionOtp == $request->otp && now()->lessThan($expiresAt)) {
+        // OTP is correct
+        return response()->json([
+            'message' => 'OTP Verified Successfully',
+        ], 200);
+    } else {
+        // OTP is incorrect or expired
+        return response()->json([
+            'message' => 'Invalid or expired OTP',
+        ], 400);
+    }
+}
+
     
 
     public function logout() {
