@@ -1,12 +1,14 @@
 <?php
 
-// routes/api.php
+namespace App\Http\Controllers\UserAuth;
+
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthManager;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\CustomForgotPasswordController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,8 +26,6 @@ Route::get('/login', [AuthManager::class, 'login'])->name('login');
 Route::post('/loginPost', [AuthManager::class, 'loginPost'])->name('login.post');
 Route::get('/registration', [AuthManager::class, 'registration'])->name('registration');
 Route::post('/registrationPost', [AuthManager::class, 'registrationPost'])->name('registration.post');
-Route::post('/check-email', [AuthManager::class, 'checkEmail'])->name("check.email");
-Route::post('/verify-otp', [AuthManager::class, 'verifyOtp'])->name("verify.otp");
 Route::get('/logout', [AuthManager::class, 'logout'])->name('logout');
 
 // Contact routes
@@ -40,3 +40,11 @@ Route::post('/tasks/update/{id}', [TaskController::class, 'update']);
 Route::put('/tasks/{id}', [TaskController::class, 'update'])->name('tasks.update'); // Update a task
 Route::patch('/tasks/{id}', [TaskController::class, 'update'])->name('tasks.patch'); // Partially update a task
 Route::delete('/tasks/{id}', [TaskController::class, 'destroy'])->name('tasks.destroy');  // Delete a task
+
+
+//OTP routes
+Route::post('/check-email', [CustomForgotPasswordController::class, 'checkEmail'])->name("check.email");
+Route::post('/send-otp', [CustomForgotPasswordController::class, 'sendOTP'])->name("send.otp");
+Route::post('/verify-otp', [CustomForgotPasswordController::class, 'verifyOTP'])->name("verify.otp");
+Route::post('/reset-password', [PasswordResetController::class, 'reset']);
+

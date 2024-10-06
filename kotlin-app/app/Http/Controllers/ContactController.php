@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\ContactUs;
-use App\Models\Contact; // Import the Contact model
+use App\Models\Contact;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
