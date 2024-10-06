@@ -11,9 +11,10 @@
         </tr>
         <tr>
           <td style="padding: 20px 0; border-top: 1px solid #e0e0e0; border-bottom: 1px solid #e0e0e0;">
-            <h3 style="color: #333;"><strong>Name:</strong> <span style="color: #555;">{{ $data['username'] }}</span></h3>
-            <h3 style="color: #333;"><strong>Email:</strong> <span style="color: #555;">{{ $data['email'] }}</span></h3>
+            <h3 style="color: #333;"><strong>Name:</strong> <span style="color: #555;">{{ $data['username'] ?? 'N/A' }}</span></h3>
+            <h3 style="color: #333;"><strong>Email:</strong> <span style="color: #555;">{{ $data['email'] ?? 'N/A' }}</span></h3>
             <h3 style="color: #333;"><strong>Message:</strong></h3>
+            <p style="color: #555;">{{ $data['message'] ?? 'No message provided' }}</p>
             <p style="color: #555; font-size: 14px; line-height: 1.6;">{{ $data['message'] }}</p>
           </td>
         </tr>

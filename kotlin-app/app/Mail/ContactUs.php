@@ -15,14 +15,28 @@ class ContactUs extends Mailable
     use Queueable, SerializesModels;
 
     public $data;
+    public $username;
+    public $email;
+    public $messageContent;
 
-    /**
-     * Create a new message instance.
-     */
-    public function __construct($data)
+    public function __construct($username, $email, $messageContent)
     {
-        $this->data = $data;
+        $this->username = $username;
+        $this->email = $email;
+        $this->messageContent = $messageContent;
     }
+
+    public function build()
+    {
+        return $this->view('emails.contact-form')
+                    ->subject('Contact Form Submission')
+                    ->with([
+                        'username' => $this->username,
+                        'email' => $this->email,
+                        'messageContent' => $this->messageContent,
+                    ]);
+    }
+
 
     /**
      * Get the message envelope.

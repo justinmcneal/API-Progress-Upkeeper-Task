@@ -8,8 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class Contact extends Model
 {
     use HasFactory;
-    
-    protected $fillable = ['username', 'email', 'message'];
+
+    // Define all the fields that are mass assignable
+    protected $fillable = ['username', 'email', 'message']; // Combine all fields into one array
 
     protected $table = 'contacts'; 
 }

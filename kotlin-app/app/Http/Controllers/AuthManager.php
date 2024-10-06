@@ -10,72 +10,69 @@ use Illuminate\Support\Facades\Session;
 
 class AuthManager extends Controller
 {
-    public function loginPost(Request $request) {
-        // Validate the request data
+    public function loginPost(Request $request)
+    {
         $request->validate([
             'email' => 'required|email',
             'password' => 'required',
         ]);
-    
+
         $credentials = $request->only('email', 'password');
         
         if (Auth::attempt($credentials)) {
-            // Get the authenticated user
             $user = Auth::user();
-    
-            // Ensure the user model is being used when creating the token
-            if ($user instanceof \App\Models\User) {
-                // Generate a token for the user (using Sanctum)
-                $token = $user->createToken('auth_token')->plainTextToken;
-    
-                // Return a JSON response with a success message, user info, and token
-                return response()->json([
-                    'message' => 'Login Successful',
-                    'user' => $user, // Optionally include user info
-                    'token' => $token
-                ], 200);
-            }
-            
+
+            // Generate a token for the user (using Sanctum)
+            $token = $user->createToken('auth_token')->plainTextToken;
+
             return response()->json([
-                'message' => 'User instance not found',
-            ], 401);
+                'message' => 'Login Successful',
+                'user' => [
+                    'id' => $user->id,
+                    'username' => $user->username,
+                    'email' => $user->email,
+                ],
+                'token' => $token
+            ], 200);
         }
-    
-        // Return a JSON response with an error message
+
         return response()->json([
             'message' => 'Login Details Not Valid'
         ], 401);
     }
     
-    public function registrationPost(Request $request) {
+    public function registrationPost(Request $request)
+    {
         try {
-            // Validate the request data
             $request->validate([
                 'username' => 'required|max:50|unique:users',
                 'email' => 'required|email|max:50|unique:users',
                 'password' => 'required|confirmed'
             ]);
-    
+
             // Create the user
             $user = User::create([
                 'username' => $request->username,
                 'email' => $request->email,
                 'password' => Hash::make($request->password) // Use Hash::make to encrypt the password
             ]);
-    
-            // Return a JSON response with success message and user data
+
             return response()->json([
                 'message' => 'Registration Success!',
-                'user' => $user
+                'user' => [
+                    'id' => $user->id,
+                    'username' => $user->username,
+                    'email' => $user->email,
+                ]
             ], 201)->header('Content-Type', 'application/json');
-    
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             // Return a JSON response with validation error messages
             return response()->json([
                 'errors' => $e->errors(),
                 'message' => 'Validation Error'
             ], 422)->header('Content-Type', 'application/json');
-    
+
         } catch (\Exception $e) {
             // Return a JSON response with a generic error message
             return response()->json([
@@ -84,9 +81,9 @@ class AuthManager extends Controller
             ], 500)->header('Content-Type', 'application/json');
         }
     }
-    
 
-    public function logout() {
+    public function logout()
+    {
         Session::flush();
         Auth::logout();
         return response()->json([

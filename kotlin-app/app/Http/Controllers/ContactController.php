@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\ContactUs;
-use App\Models\Contact; // Import the Contact model
+use App\Models\Contact;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
@@ -18,12 +18,15 @@ class ContactController extends Controller
     public function send(Request $request)
     {
         try {
-            // Validate incoming request data
+            // Validate incoming request data (only message is required since name and email will come from auth)
             $data = $request->validate([
-                'username' => 'required|max:255',
-                'email' => 'required|email',
                 'message' => 'required|min:1',
             ]);
+
+            // Get authenticated user's name and email
+            $user = auth()->user();
+            $data['username'] = $user->name; // Assuming the user's name field is 'name'
+            $data['email'] = $user->email;   // Assuming the user's email field is 'email'
 
             // Save contact message to the database
             Contact::create($data);
