@@ -10,42 +10,49 @@ use Illuminate\Support\Facades\Session;
 
 class AuthManager extends Controller
 {
-    public function loginPost(Request $request) {
-        // Validate the request data
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
-    
-        $credentials = $request->only('email', 'password');
-        
-        if (Auth::attempt($credentials)) {
-            // Get the authenticated user
-            $user = Auth::user();
-    
-            // Ensure the user model is being used when creating the token
-            if ($user instanceof \App\Models\User) {
-                // Generate a token for the user (using Sanctum)
+public function loginPost(Request $request) {
+    // Validate requests
+    $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+    ]);
+
+    $credentials = $request->only('email', 'password');
+
+    if (Auth::attempt($credentials)) {
+        // Get user
+        $user = Auth::user();
+
+        // Ensure the user model is being used when creating the token
+        if ($user instanceof \App\Models\User) {
+            try {
                 $token = $user->createToken('auth_token')->plainTextToken;
-    
+
                 // Return a JSON response with a success message, user info, and token
                 return response()->json([
                     'message' => 'Login Successful',
                     'user' => $user, // Optionally include user info
                     'token' => $token
                 ], 200);
+            } catch (\Exception $e) {
+                // Log the error and return a JSON response with an error message
+                Log::error('Failed to generate token for user', ['user_id' => $user->id, 'error' => $e->getMessage()]);
+                return response()->json([
+                    'message' => 'Failed to generate token',
+                ], 500);
             }
-            
-            return response()->json([
-                'message' => 'User instance not found',
-            ], 401);
         }
-    
-        // Return a JSON response with an error message
+
         return response()->json([
-            'message' => 'Login Details Not Valid'
+            'message' => 'User instance not found',
         ], 401);
     }
+
+    // Return a JSON response with an error message
+    return response()->json([
+        'message' => 'Login Details Not Valid',
+    ], 422);
+}
     
     public function registrationPost(Request $request) {
         try {
@@ -141,9 +148,7 @@ public function verifyOtp(Request $request)
             'message' => 'Invalid or expired OTP',
         ], 400);
     }
-}
-
-    
+}   
 
     public function logout() {
         Session::flush();
