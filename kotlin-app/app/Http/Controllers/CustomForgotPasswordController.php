@@ -100,20 +100,27 @@ class CustomForgotPasswordController extends Controller
     }
 
     public function resetPassword(Request $request) {
+        // Validate incoming request
         $request->validate([
             'email' => 'required|email',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => 'required|string|min:8|confirmed', // Ensure confirmation is correct
         ]);
     
         // Fetch the verified email from the OTP verification process
-        $otpRecord = DB::table('password_resets')->where('email', $request->email)->where('otp_verified', true)->first();
+        $otpRecord = DB::table('password_resets')
+            ->where('email', $request->email)
+            ->where('otp_verified', true)
+            ->first();
     
+        // Check if OTP was verified
         if (!$otpRecord) {
             return response()->json(['message' => 'OTP verification required before resetting the password.'], 400);
         }
     
+        // Find the user
         $user = User::where('email', $otpRecord->email)->first();
     
+        // If user exists, update the password
         if ($user) {
             $user->password = Hash::make($request->password);
             $user->save();
@@ -126,4 +133,5 @@ class CustomForgotPasswordController extends Controller
     
         return response()->json(['message' => 'User not found.'], 404);
     }
+    
 }
