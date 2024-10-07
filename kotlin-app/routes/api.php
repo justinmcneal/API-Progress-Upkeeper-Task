@@ -46,5 +46,4 @@ Route::delete('/tasks/{id}', [TaskController::class, 'destroy'])->name('tasks.de
 Route::post('/check-email', [CustomForgotPasswordController::class, 'checkEmail'])->name("check.email");
 Route::post('/send-otp', [CustomForgotPasswordController::class, 'sendOTP'])->name("send.otp");
 Route::post('/verify-otp', [CustomForgotPasswordController::class, 'verifyOTP'])->name("verify.otp");
-Route::post('/password/reset', [CustomForgotPasswordController::class, 'resetPassword']);
-
+Route::post('/password/reset', [CustomForgotPasswordController::class, 'resetPassword'])->name('password.reset');

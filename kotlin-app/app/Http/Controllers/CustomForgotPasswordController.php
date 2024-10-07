@@ -67,13 +67,15 @@ class CustomForgotPasswordController extends Controller
             'email' => 'required|email',
             'otp' => 'required|numeric',
         ]);
-
+    
         $otpRecord = DB::table('password_resets')->where('email', $request->email)->first();
-
+    
         if ($otpRecord) {
-            // Check if OTP is still valid (e.g., 15-minute expiration)
             $expiresAt = Carbon::parse($otpRecord->created_at)->addMinutes(15);
             if ($otpRecord->otp == $request->otp && Carbon::now()->lessThan($expiresAt)) {
+                // Mark OTP as verified
+                DB::table('password_resets')->where('email', $request->email)->update(['otp_verified' => true]);
+    
                 return response()->json([
                     'otp_valid' => true,
                     'message' => 'OTP verified.'
@@ -90,22 +92,22 @@ class CustomForgotPasswordController extends Controller
                 ]);
             }
         }
-
+    
         return response()->json([
             'otp_valid' => false,
             'message' => 'Invalid OTP.'
-        ], 404); // Changed to 404 for not found
+        ], 404);
     }
 
-    public function resetPassword(Request $request)
-    {
+    public function resetPassword(Request $request) {
         $request->validate([
+            'email' => 'required|email',
             'password' => 'required|string|min:8|confirmed',
         ]);
     
         // Fetch the verified email from the OTP verification process
-        $otpRecord = DB::table('password_resets')->where('otp_verified', true)->first();
-        
+        $otpRecord = DB::table('password_resets')->where('email', $request->email)->where('otp_verified', true)->first();
+    
         if (!$otpRecord) {
             return response()->json(['message' => 'OTP verification required before resetting the password.'], 400);
         }
@@ -124,6 +126,4 @@ class CustomForgotPasswordController extends Controller
     
         return response()->json(['message' => 'User not found.'], 404);
     }
-    
-    
 }
