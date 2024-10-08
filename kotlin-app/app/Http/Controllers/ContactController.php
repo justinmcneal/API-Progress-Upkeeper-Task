@@ -12,58 +12,54 @@ use Validator;
 
 class ContactController extends Controller
 {
-
     public function show()
     {
         return view('contact');
     }
-
 
     public function send(Request $request)
     {
         $validationRules = [
             'message' => 'required|min:1',
         ];
-
+    
         $validator = Validator::make($request->all(), $validationRules);
-
+    
         if ($validator->fails()) {
             return response()->json([
                 'message' => 'Validation failed',
                 'errors' => $validator->errors()->all(),
             ], 422);
         }
-
+    
         try {
-
             $user = Auth::user();
-
+    
             if (!$user) {
                 return response()->json(['message' => 'User not authenticated'], 401);
             }
-
-            // Prepare the data, including the user's username and email
-            $data = [
-                'username' => $user->username,
-                'email' => $user->email,
-                'message' => $request->message,
-            ];
-
+    
             // Save contact message to the database
-            Contact::create($data);
-
+            $contact = Contact::create([
+                'message' => $request->message, // Only message is fillable
+            ]);
+    
+            // Optionally, you can store the username and email in the model if needed
+            $contact->username = $user->username; // Assign username
+            $contact->email = $user->email; // Assign email
+            $contact->save(); // Save the model again with additional fields
+    
             // Send the email
-            Mail::to('lumpiajavarice@gmail.com')->send(new ContactUs($data));
-
+            Mail::to('lumpiajavarice@gmail.com')->send(new ContactUs($user->username, $user->email, $request->message));
+    
             return response()->json(['message' => 'Great! Successfully sent email and saved contact'], 200);
         } catch (\Swift_TransportException $e) {
-            // Email sending failed
             Log::error('Mail sending failed: ' . $e->getMessage());
             return response()->json(['message' => 'Sorry! Please try again later'], 500);
         } catch (\Exception $e) {
-            // Catch any other general exception
             Log::error('An error occurred: ' . $e->getMessage());
             return response()->json(['message' => 'An error occurred: ' . $e->getMessage()], 500);
         }
     }
+        
 }
