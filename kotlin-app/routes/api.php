@@ -32,6 +32,7 @@ Route::get('/logout', [AuthManager::class, 'logout'])->name('logout');
 Route::get('/contact', [ContactController::class, 'show'])->name('contact.show');
 Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.send');
 
+
 // Task routes
 Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');  // Get all tasks
 Route::get('/tasks/{id}', [TaskController::class, 'show'])->name('tasks.show');  // Get a specific task
