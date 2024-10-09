@@ -21,26 +21,23 @@ use App\Http\Controllers\CustomForgotPasswordController;
 */
 
 // Authentication routes
-Route::post('/login', [AuthManager::class, 'loginPost'])->name('login'); //ERROR 405
-Route::post('/login', [AuthManager::class, 'loginPost'])->name('login.post'); //ERROR 500
-
+Route::post('/login', [AuthManager::class, 'loginPost'])->name('login'); // Route for login
 Route::post('/register', [AuthManager::class, 'registrationPost'])->name('registration.post'); // POST for registration
 Route::post('/logout', [AuthManager::class, 'logout'])->name('logout'); // POST for logout
 
 // Get authenticated user
-Route::middleware('auth')->get('/user', [AuthManager::class, 'getUser'])->name('auth.user');
-Route::middleware('auth')->post('/contact/send', [ContactController::class, 'send'])->name('contact.send');
+Route::middleware('auth:api')->get('/user', [AuthManager::class, 'getUser'])->name('auth.user');
+
+// Contact routes
+Route::middleware('auth:api')->post('/contact/send', [ContactController::class, 'send'])->name('contact.send'); // POST for sending contact form
 Route::get('/contact', [ContactController::class, 'show'])->name('contact.show'); // GET for showing contact form
 
-// Update the contact route to include the username and email
-Route::middleware('auth')->post('/contact', [ContactController::class, 'send'])->name('contact.send');
-
 // Task routes
-Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index'); // Get all tasks
-Route::get('/tasks/{id}', [TaskController::class, 'show'])->name('tasks.show'); // Get a specific task
-Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store'); // Create a new task
-Route::put('/tasks/{id}', [TaskController::class, 'update'])->name('tasks.update'); // Update a task
-Route::delete('/tasks/{id}', [TaskController::class, 'destroy'])->name('tasks.destroy'); // Delete a task
+Route::middleware('auth:api')->get('/tasks', [TaskController::class, 'index'])->name('tasks.index'); // Get all tasks
+Route::middleware('auth:api')->get('/tasks/{id}', [TaskController::class, 'show'])->name('tasks.show'); // Get a specific task
+Route::middleware('auth:api')->post('/tasks', [TaskController::class, 'store'])->name('tasks.store'); // Create a new task
+Route::middleware('auth:api')->put('/tasks/{id}', [TaskController::class, 'update'])->name('tasks.update'); // Update a task
+Route::middleware('auth:api')->delete('/tasks/{id}', [TaskController::class, 'destroy'])->name('tasks.destroy'); // Delete a task
 
 // OTP routes
 Route::post('/check-email', [CustomForgotPasswordController::class, 'checkEmail'])->name("check.email");
