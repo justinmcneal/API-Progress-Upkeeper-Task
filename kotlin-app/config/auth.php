@@ -94,6 +94,7 @@ return [
         'users' => [
             'provider' => 'users',
             'table' => 'password_reset_tokens',
+            'model' => App\Models\User::class, //TESTING
             'expire' => 60,
             'throttle' => 60,
         ],

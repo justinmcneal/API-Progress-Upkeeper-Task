@@ -19,6 +19,8 @@ class ContactController extends Controller
 
     public function send(Request $request)
     {
+
+        // return response()->json(['message' => 'this is just a test ']);
         $validationRules = [
             'message' => 'required|min:1',
         ];
@@ -38,16 +40,22 @@ class ContactController extends Controller
             if (!$user) {
                 return response()->json(['message' => 'User not authenticated'], 401);
             }
+
+            // Fetch the username and email
+            $username = $user->username;
+            $email = $user->email;
     
             // Save contact message to the database
             $contact = Contact::create([
+                'username' => $username, // Assign username
+                'email' => $email, // Assign emailv
                 'message' => $request->message, // Only message is fillable
             ]);
     
-            // Optionally, you can store the username and email in the model if needed
-            $contact->username = $user->username; // Assign username
-            $contact->email = $user->email; // Assign email
-            $contact->save(); // Save the model again with additional fields
+            // Assign username and email from the authenticated user
+            // $contact->username = $user->username; // Assign username
+            // $contact->email = $user->email; // Assign email
+            // $contact->save(); 
     
             // Send the email
             Mail::to('lumpiajavarice@gmail.com')->send(new ContactUs($user->username, $user->email, $request->message));
@@ -61,5 +69,6 @@ class ContactController extends Controller
             return response()->json(['message' => 'An error occurred: ' . $e->getMessage()], 500);
         }
     }
+    
         
 }

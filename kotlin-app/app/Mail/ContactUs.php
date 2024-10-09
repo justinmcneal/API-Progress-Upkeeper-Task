@@ -5,20 +5,26 @@ namespace App\Mail;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Auth;
 
 class ContactUs extends Mailable
 {
     use Queueable, SerializesModels;
 
+    public $message;
     public $username;
     public $email;
-    public $message;
 
-    public function __construct($username, $email, $message)
+    public function __construct($message)
     {
+        $this->message = $message;
         $this->username = $username;
         $this->email = $email;
-        $this->message = $message;
+
+        // Fetch the authenticated user
+        $user = Auth::user();
+        $this->username = $user ? $user->username : 'Guest'; // Fallback if user is not authenticated
+        $this->email = $user ? $user->email : 'No Email'; // Fallback if user is not authenticated
     }
 
     public function build()
