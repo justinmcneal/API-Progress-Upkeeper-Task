@@ -29,7 +29,7 @@ Route::post('/logout', [AuthManager::class, 'logout'])->name('logout'); // POST 
 Route::middleware('auth:api')->get('/user', [AuthManager::class, 'getUser'])->name('auth.user');
 
 // Contact routes
-Route::middleware('auth:api')->post('/contact/send', [ContactController::class, 'send'])->name('contact.send'); // POST for sending contact form
+Route::post('/contact/send', [ContactController::class, 'send'])->name('contact.send'); // POST for sending contact form
 Route::get('/contact', [ContactController::class, 'show'])->name('contact.show'); // GET for showing contact form
 
 // Task routes
