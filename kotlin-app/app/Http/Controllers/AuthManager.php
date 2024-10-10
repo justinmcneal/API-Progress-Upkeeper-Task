@@ -7,36 +7,35 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Log;
 
 class AuthManager extends Controller
 {
-public function loginPost(Request $request) {
-    // Validate requests
-    $request->validate([
-        'email' => 'required|email',
-        'password' => 'required',
-    ]);
+    public function loginPost(Request $request) {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
 
-    $credentials = $request->only('email', 'password');
+        $credentials = $request->only('email', 'password');
 
-    if (Auth::attempt($credentials)) {
-        // Get user
-        $user = Auth::user();
+        if (Auth::attempt($credentials)) {
+            $user = Auth::user();
 
-        // Ensure the user model is being used when creating the token
-        if ($user instanceof \App\Models\User) {
             try {
+                // Create a Sanctum token
                 $token = $user->createToken('auth_token')->plainTextToken;
 
-                // Return a JSON response with a success message, user info, and token
                 return response()->json([
                     'message' => 'Login Successful',
-                    'user' => $user, // Optionally include user info
-                    'token' => $token
+                    'user' => $user,
+                    'token' => $token,
                 ], 200);
             } catch (\Exception $e) {
-                // Log the error and return a JSON response with an error message
-                Log::error('Failed to generate token for user', ['user_id' => $user->id, 'error' => $e->getMessage()]);
+                Log::error('Failed to generate token for user', [
+                    'user_id' => $user->id,
+                    'error' => $e->getMessage(),
+                ]);
                 return response()->json([
                     'message' => 'Failed to generate token',
                 ], 500);
@@ -44,117 +43,83 @@ public function loginPost(Request $request) {
         }
 
         return response()->json([
-            'message' => 'User instance not found',
-        ], 401);
+            'message' => 'Login Details Not Valid',
+        ], 422);
     }
-
-    // Return a JSON response with an error message
-    return response()->json([
-        'message' => 'Login Details Not Valid',
-    ], 422);
-}
     
     public function registrationPost(Request $request) {
         try {
-            // Validate the request data
             $request->validate([
                 'username' => 'required|max:50|unique:users',
                 'email' => 'required|email|max:50|unique:users',
-                'password' => 'required|confirmed'
+                'password' => 'required|confirmed',
             ]);
     
-            // Create the user
             $user = User::create([
                 'username' => $request->username,
                 'email' => $request->email,
-                'password' => Hash::make($request->password) // Use Hash::make to encrypt the password
+                'password' => Hash::make($request->password),
             ]);
     
-            // Return a JSON response with success message and user data
             return response()->json([
                 'message' => 'Registration Success!',
-                'user' => $user
-            ], 201)->header('Content-Type', 'application/json');
+                'user' => $user,
+            ], 201);
     
         } catch (\Illuminate\Validation\ValidationException $e) {
-            // Return a JSON response with validation error messages
             return response()->json([
                 'errors' => $e->errors(),
-                'message' => 'Validation Error'
-            ], 422)->header('Content-Type', 'application/json');
+                'message' => 'Validation Error',
+            ], 422);
     
         } catch (\Exception $e) {
-            // Return a JSON response with a generic error message
             return response()->json([
                 'message' => 'An unexpected error occurred',
-                'error' => $e->getMessage()
-            ], 500)->header('Content-Type', 'application/json');
+                'error' => $e->getMessage(),
+            ], 500);
         }
     }
 
-    public function checkEmail(Request $request)
-{
-    // Validate the email field
-    $request->validate([
-        'email' => 'required|email'
-    ]);
+    public function checkEmail(Request $request) {
+        $request->validate(['email' => 'required|email']);
 
-    // Check if the email exists in the users table
-    $emailExists = User::where('email', $request->email)->exists();
+        $emailExists = User::where('email', $request->email)->exists();
 
-    if ($emailExists) {
-        // Generate a random 6-digit OTP
-        $otp = random_int(100000, 999999);
+        if ($emailExists) {
+            $otp = random_int(100000, 999999);
+            session(['otp' => $otp, 'otp_expires_at' => now()->addMinutes(10)]);
+            \Mail::to($request->email)->send(new \App\Mail\OtpMail($otp));
 
-        // Save the OTP to the database (or session/cache)
-        // Example: Storing in the session (for simplicity)
-        session(['otp' => $otp, 'otp_expires_at' => now()->addMinutes(10)]);
-
-        // Send OTP via email
-        \Mail::to($request->email)->send(new \App\Mail\OtpMail($otp));
-
-        return response()->json([
-            'message' => 'Email exists, OTP sent',
-            'email_exists' => true
-        ], 200);
-    } else {
-        return response()->json([
-            'message' => 'Email does not exist',
-            'email_exists' => false
-        ], 404);
+            return response()->json([
+                'message' => 'Email exists, OTP sent',
+                'email_exists' => true,
+            ], 200);
+        } else {
+            return response()->json([
+                'message' => 'Email does not exist',
+                'email_exists' => false,
+            ], 404);
+        }
     }
-}
 
+    public function verifyOtp(Request $request) {
+        $request->validate(['otp' => 'required|numeric']);
 
-public function verifyOtp(Request $request)
-{
-    $request->validate([
-        'otp' => 'required|numeric',
-    ]);
+        $sessionOtp = session('otp');
+        $expiresAt = session('otp_expires_at');
 
-    // Retrieve OTP and expiration time from session
-    $sessionOtp = session('otp');
-    $expiresAt = session('otp_expires_at');
-
-    // Check if OTP is valid and not expired
-    if ($sessionOtp == $request->otp && now()->lessThan($expiresAt)) {
-        // OTP is correct
-        return response()->json([
-            'message' => 'OTP Verified Successfully',
-        ], 200);
-    } else {
-        // OTP is incorrect or expired
-        return response()->json([
-            'message' => 'Invalid or expired OTP',
-        ], 400);
+        if ($sessionOtp == $request->otp && now()->lessThan($expiresAt)) {
+            return response()->json(['message' => 'OTP Verified Successfully'], 200);
+        } else {
+            return response()->json(['message' => 'Invalid or expired OTP'], 400);
+        }
     }
-}   
 
     public function logout() {
-        Session::flush();
-        Auth::logout();
-        return response()->json([
-            'message' => 'Logged out successfully'
-        ], 200);
+        // Invalidate the token
+        $user = Auth::user();
+        $user->tokens()->delete(); // Delete all tokens for the user
+
+        return response()->json(['message' => 'Logged out successfully'], 200);
     }
 }
