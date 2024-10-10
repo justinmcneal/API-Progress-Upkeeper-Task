@@ -12,11 +12,12 @@
                 $table->id();
                 $table->string('email')->index();
                 $table->string('otp');
-                $table->boolean('otp_verified')->default(false); // Added to track OTP verification
+                $table->boolean('otp_verified')->default(false);
                 $table->timestamp('created_at')->nullable();
-                $table->timestamp('updated_at')->nullable(); // Added to track updates
+                $table->timestamp('updated_at')->nullable();
+                $table->timestamp('expires_at')->nullable(); // Added for OTP expiration
             });
-        }
+        }        
     
         public function down()
         {

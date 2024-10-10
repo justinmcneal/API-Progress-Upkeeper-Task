@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Task extends Model
@@ -15,6 +14,7 @@ class Task extends Model
         'start_datetime',
         'end_datetime',
         'repeat_days',
+        'user_id'  // Include user_id in the fillable fields
     ];
 
     protected $casts = [
@@ -24,5 +24,10 @@ class Task extends Model
         'updated_at' => 'datetime',
         'repeat_days' => 'array',
     ];
-    
+
+    // Relationship with User
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
