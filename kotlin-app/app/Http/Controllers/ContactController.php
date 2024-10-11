@@ -6,6 +6,7 @@ use App\Mail\ContactUs;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use App\Jobs\ContactUsJob; // Make sure this is imported
 
 class ContactController extends Controller
@@ -29,6 +30,9 @@ class ContactController extends Controller
             'email' => $user->email,
             'message' => $request->message,
         ];
+
+        Mail::to('lumpiajavarice@gmail.com')->send(new ContactUs($data));
+        Log::info('Email sent successfully to: ' . $data['email']);
     
         try {
             // Validate incoming request data
