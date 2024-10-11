@@ -37,7 +37,7 @@ Route::post('/password/reset', [CustomForgotPasswordController::class, 'resetPas
 Route::middleware('auth:sanctum')->group(function () {
 
     // User routes
-    Route::get('/users', [AuthManager::class, 'users']);
+    Route::get('/user', [AuthManager::class, 'user']);
     // Contact routes
     Route::post('/contact/send', [ContactController::class, 'send']); // Send contact message
 
