@@ -21,7 +21,7 @@ class ContactUs extends Mailable
      */
     public function __construct($data)
     {
-        $this->data = $data;
+        $this->data = $data; // Store the contact data (username, email, message)
     }
 
     /**
@@ -31,7 +31,7 @@ class ContactUs extends Mailable
     {
         return new Envelope(
             subject: 'Contact Us',
-            from: new Address('lumpiajavarice@gmail.com', 'HTML-JAVA TEAM'),
+            from: new Address('lumpiajavarice@gmail.com', 'HTML-JAVA TEAM'), // Set the sender's email and name
         );
     }
 
@@ -41,17 +41,7 @@ class ContactUs extends Mailable
     public function content(): Content
     {
         return new Content(
-            markdown: 'emails.contact',
+            markdown: 'emails.contact', // Use a markdown view for the email content
         );
-    }
-
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-     */
-    public function attachments(): array
-    {
-        return [];
     }
 }
