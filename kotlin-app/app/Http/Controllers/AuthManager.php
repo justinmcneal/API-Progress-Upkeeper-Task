@@ -122,4 +122,10 @@ class AuthManager extends Controller
 
         return response()->json(['message' => 'Logged out successfully'], 200);
     }
+
+    public function getUser(Request $request)
+    {
+        // Fetch the authenticated user
+        return response()->json(Auth::user(), 200);
+    }
 }
