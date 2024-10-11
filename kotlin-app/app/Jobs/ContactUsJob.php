@@ -13,23 +13,25 @@ use Illuminate\Support\Facades\Mail;
 class ContactUsJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-
     protected $data;
 
-    /**
-     * Create a new job instance.
-     */
     public function __construct($data)
     {
         $this->data = $data;
     }
 
-    /**
-     * Execute the job.
-     */
     public function handle(): void
     {
+        \Log::info('Sending email to: ' . $this->data['email']);
         $mailable = new ContactUs($this->data);
-        Mail::to('lumpiajavarice@gmail.com')->send($mailable);
+        
+        // Attempt to send the email
+        try {
+            Mail::to('lumpiajavarice@gmail.com')->send($mailable);
+            \Log::info('Email sent successfully to: ' . $this->data['email']);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send email: ' . $e->getMessage());
+        }
     }
 }
+
