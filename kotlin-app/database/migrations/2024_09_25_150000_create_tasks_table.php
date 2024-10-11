@@ -16,6 +16,7 @@ return new class extends Migration
             $table->timestamp('end_datetime')->nullable();
             $table->json('repeat_days')->nullable();
             $table->boolean('send_notification')->default(false);
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');  // Add foreign key to users table
             $table->timestamps();
         });
     }
