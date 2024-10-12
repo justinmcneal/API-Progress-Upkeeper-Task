@@ -53,11 +53,9 @@ class TaskController extends Controller
                 'end_datetime' => 'required|date|after:start_datetime',
                 'repeat_days' => 'nullable|array', // Make repeat_days optional
                 'repeat_days.*' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
-                'category' => 'required|string|in:Home,Personal,Work,School', // Add validation rule for category
+                'category' => 'required|string|in:Home,Personal,Work,School',
             ], [
                 'task_name.unique' => 'A task with this name already exists. Please choose a different name.',
-                'category.required' => 'The category field is required.',
-                'category.in' => 'The category must be one of the following: Home, Personal, Work, or School.'
             ]);
 
             $task = Task::create([
@@ -66,7 +64,7 @@ class TaskController extends Controller
                 'start_datetime' => $request->start_datetime,
                 'end_datetime' => $request->end_datetime,
                 'repeat_days' => $request->repeat_days ?? null, // Set to null if repeat_days is not provided
-                'category' => $request->category, // Assign category
+                'category' => $request->category, // Include category in the create method
                 'user_id' => Auth::id(), // Using authenticated user's ID
             ]);
 
@@ -97,7 +95,7 @@ class TaskController extends Controller
                 'end_datetime' => 'sometimes|date|after:start_datetime',
                 'repeat_days' => 'nullable|array', // Make repeat_days optional
                 'repeat_days.*' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
-                'category' => 'required|string|in:Home,Personal,Work,School' // Make category required
+                'category' => 'required|string|in:Home,Personal,Work,School',
             ]);
 
             $task->fill($validatedData);

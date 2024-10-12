@@ -15,7 +15,8 @@ class Task extends Model
         'start_datetime',
         'end_datetime',
         'repeat_days',
-        'user_id'  // Include user_id in the fillable fields
+        'user_id',  // Include user_id in the fillable fields
+        'category'
     ];
 
     protected $casts = [
