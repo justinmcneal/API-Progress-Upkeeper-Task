@@ -42,6 +42,7 @@ class ContactUs extends Mailable
     {
         return new Content(
             markdown: 'emails.contact', // Use a markdown view for the email content
+            with: ['data' => $this->data] // Pass the data to the view
         );
     }
 }
