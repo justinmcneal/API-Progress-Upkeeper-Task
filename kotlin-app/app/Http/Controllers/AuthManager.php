@@ -131,7 +131,7 @@ class AuthManager extends Controller
 
     public function updateUsername(Request $request) {
         $request->validate([
-            'username' => 'required|string|max:50|unique:users,username,' . Auth::id(),
+            'username' => 'required|max:50', // Adjust validation as needed
         ]);
 
         $user = Auth::user();

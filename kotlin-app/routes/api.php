@@ -38,7 +38,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // User routes
     Route::get('/user', [AuthManager::class, 'user']);
-    Route::put('/user/update-username', [AuthManager::class, 'updateUsername'])->name('user.update.username'); // Update username
+    Route::put('/user/update-username', [AuthManager::class, 'updateUsername'])->name('user.update.username');
     
     // Contact routes
     Route::post('/contact/send', [ContactController::class, 'send']); // Send contact message
