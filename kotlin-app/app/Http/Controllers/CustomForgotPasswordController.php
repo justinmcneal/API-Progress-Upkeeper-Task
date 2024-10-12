@@ -99,6 +99,7 @@ class CustomForgotPasswordController extends Controller
         ], 404);
     }
 
+
     public function resetPassword(Request $request) {
         // Validate incoming request
         $request->validate([

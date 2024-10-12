@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 
 class AuthManager extends Controller
 {
-    public function loginPost(Request $request) {
+    public function login(Request $request) {
         $request->validate([
             'email' => 'required|email',
             'password' => 'required',
@@ -121,5 +121,11 @@ class AuthManager extends Controller
         $user->tokens()->delete(); // Delete all tokens for the user
 
         return response()->json(['message' => 'Logged out successfully'], 200);
+    }
+
+    public function user(Request $request) //changed the name getUser to user
+    {
+        // Fetch the authenticated user
+        return response()->json(Auth::user(), 200);
     }
 }

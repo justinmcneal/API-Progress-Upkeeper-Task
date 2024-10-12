@@ -22,7 +22,7 @@ use App\Http\Controllers\CustomForgotPasswordController;
 
 // Authentication routes
 Route::get('/login', [AuthManager::class, 'login'])->name('login');
-Route::post('/login', [AuthManager::class, 'loginPost'])->name('login.post');
+Route::post('/login', [AuthManager::class, 'login'])->name('login.post');
 Route::get('/registration', [AuthManager::class, 'registration'])->name('registration');
 Route::post('/registration', [AuthManager::class, 'registrationPost'])->name('registration.post');
 Route::get('/logout', [AuthManager::class, 'logout'])->name('logout');
@@ -35,6 +35,9 @@ Route::post('/password/reset', [CustomForgotPasswordController::class, 'resetPas
 
 // Protected routes - requires authentication
 Route::middleware('auth:sanctum')->group(function () {
+
+    // User routes
+    Route::get('/user', [AuthManager::class, 'user']);
     // Contact routes
     Route::post('/contact/send', [ContactController::class, 'send']); // Send contact message
 

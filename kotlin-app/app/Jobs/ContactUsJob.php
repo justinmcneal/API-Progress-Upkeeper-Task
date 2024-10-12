@@ -15,6 +15,7 @@ class ContactUsJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
     protected $data;
 
+
     public function __construct($data)
     {
         $this->data = $data;
