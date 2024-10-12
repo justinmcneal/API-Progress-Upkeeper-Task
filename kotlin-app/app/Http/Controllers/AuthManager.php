@@ -46,7 +46,7 @@ class AuthManager extends Controller
             'message' => 'Login Details Not Valid',
         ], 422);
     }
-    
+
     public function registrationPost(Request $request) {
         try {
             $request->validate([
@@ -54,24 +54,24 @@ class AuthManager extends Controller
                 'email' => 'required|email|max:50|unique:users',
                 'password' => 'required|confirmed',
             ]);
-    
+
             $user = User::create([
                 'username' => $request->username,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
             ]);
-    
+
             return response()->json([
                 'message' => 'Registration Success!',
                 'user' => $user,
             ], 201);
-    
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'errors' => $e->errors(),
                 'message' => 'Validation Error',
             ], 422);
-    
+
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'An unexpected error occurred',
@@ -127,5 +127,20 @@ class AuthManager extends Controller
     {
         // Fetch the authenticated user
         return response()->json(Auth::user(), 200);
+    }
+
+    public function updateUsername(Request $request) {
+        $request->validate([
+            'username' => 'required|max:50', // Adjust validation as needed
+        ]);
+
+        $user = Auth::user();
+        $user->username = $request->username;
+        $user->save();
+
+        return response()->json([
+            'message' => 'Username updated successfully.',
+            'user' => $user,
+        ], 200);
     }
 }
