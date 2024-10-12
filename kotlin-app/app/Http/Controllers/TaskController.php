@@ -36,9 +36,7 @@ class TaskController extends Controller
             return response()->json($task, 200);
         } catch (ModelNotFoundException $e) {
             Log::warning("Task not found with ID: $id");
-            return response()->json([
-                'message' => 'Task not found',
-            ], 404);
+            return response()->json(['message' => 'Task not found'], 404);
         } catch (\Exception $e) {
             return $this->handleError("Error fetching task with ID $id", $e);
         }
@@ -53,10 +51,13 @@ class TaskController extends Controller
                 'task_description' => 'required|max:255',
                 'start_datetime' => 'required|date|before:end_datetime',
                 'end_datetime' => 'required|date|after:start_datetime',
-                'repeat_days' => 'required|array',
-                'repeat_days.*' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday'
+                'repeat_days' => 'nullable|array', // Make repeat_days optional
+                'repeat_days.*' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
+                'category' => 'required|string|in:Home,Personal,Work,School', // Add validation rule for category
             ], [
                 'task_name.unique' => 'A task with this name already exists. Please choose a different name.',
+                'category.required' => 'The category field is required.',
+                'category.in' => 'The category must be one of the following: Home, Personal, Work, or School.'
             ]);
 
             $task = Task::create([
@@ -64,7 +65,8 @@ class TaskController extends Controller
                 'task_description' => $request->task_description,
                 'start_datetime' => $request->start_datetime,
                 'end_datetime' => $request->end_datetime,
-                'repeat_days' => $request->repeat_days,
+                'repeat_days' => $request->repeat_days ?? null, // Set to null if repeat_days is not provided
+                'category' => $request->category, // Assign category
                 'user_id' => Auth::id(), // Using authenticated user's ID
             ]);
 
@@ -93,8 +95,9 @@ class TaskController extends Controller
                 'task_description' => 'sometimes|max:255',
                 'start_datetime' => 'sometimes|date|before:end_datetime',
                 'end_datetime' => 'sometimes|date|after:start_datetime',
-                'repeat_days' => 'nullable|array',
-                'repeat_days.*' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday'
+                'repeat_days' => 'nullable|array', // Make repeat_days optional
+                'repeat_days.*' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
+                'category' => 'required|string|in:Home,Personal,Work,School' // Make category required
             ]);
 
             $task->fill($validatedData);
