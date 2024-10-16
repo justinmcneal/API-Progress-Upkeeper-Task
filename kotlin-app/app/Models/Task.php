@@ -12,8 +12,8 @@ class Task extends Model
     protected $fillable = [
         'task_name',
         'task_description',
-        'start_datetime',
-        'end_datetime',
+        'end_date',
+        'end_time',
         'repeat_days',
         'user_id',  // Include user_id in the fillable fields
         'category'

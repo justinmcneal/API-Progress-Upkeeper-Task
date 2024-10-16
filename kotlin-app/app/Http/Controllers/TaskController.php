@@ -49,8 +49,8 @@ class TaskController extends Controller
             $request->validate([
                 'task_name' => 'required|string|max:255|unique:tasks,task_name',
                 'task_description' => 'required|max:255',
-                'start_datetime' => 'required|date|before:end_datetime',
-                'end_datetime' => 'required|date|after:start_datetime',
+                'end_date' => 'required|date', // Validation for end date
+                'end_time' => 'required|date_format:H:i', // Validation for end time
                 'repeat_days' => 'nullable|array', // Make repeat_days optional
                 'repeat_days.*' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
                 'category' => 'required|string|in:Home,Personal,Work,School',
@@ -61,8 +61,8 @@ class TaskController extends Controller
             $task = Task::create([
                 'task_name' => $request->task_name,
                 'task_description' => $request->task_description,
-                'start_datetime' => $request->start_datetime,
-                'end_datetime' => $request->end_datetime,
+                'end_date' => $request->end_date, // Validation for end date
+                'end_time' => $request->end_time, // Validation for end time
                 'repeat_days' => $request->repeat_days ?? null, // Set to null if repeat_days is not provided
                 'category' => $request->category, // Include category in the create method
                 'user_id' => Auth::id(), // Using authenticated user's ID
@@ -91,8 +91,8 @@ class TaskController extends Controller
             $validatedData = $request->validate([
                 'task_name' => 'sometimes|string|max:255',
                 'task_description' => 'sometimes|max:255',
-                'start_datetime' => 'sometimes|date|before:end_datetime',
-                'end_datetime' => 'sometimes|date|after:start_datetime',
+                'end_date' => 'required|date', // Validation for end date
+                'end_time' => 'required|date_format:H:i', // Validation for end time
                 'repeat_days' => 'nullable|array', // Make repeat_days optional
                 'repeat_days.*' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
                 'category' => 'required|string|in:Home,Personal,Work,School',
