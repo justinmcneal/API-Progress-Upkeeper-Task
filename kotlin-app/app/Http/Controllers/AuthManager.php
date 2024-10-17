@@ -54,24 +54,28 @@ class AuthManager extends Controller
                 'email' => 'required|email|max:50|unique:users',
                 'password' => 'required|confirmed',
             ]);
-
+    
             $user = User::create([
                 'username' => $request->username,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
             ]);
-
+    
+            // Generate a Sanctum token after registration
+            $token = $user->createToken('auth_token')->plainTextToken;
+    
             return response()->json([
                 'message' => 'Registration Success!',
                 'user' => $user,
+                'token' => $token, // Return the registration token
             ], 201);
-
+    
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'errors' => $e->errors(),
                 'message' => 'Validation Error',
             ], 422);
-
+    
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'An unexpected error occurred',
@@ -79,6 +83,7 @@ class AuthManager extends Controller
             ], 500);
         }
     }
+    
 
     public function checkEmail(Request $request) {
         $request->validate(['email' => 'required|email']);
