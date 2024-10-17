@@ -18,15 +18,11 @@ class TaskController extends Controller
     }
 
     // Get all tasks for the authenticated user
-    public function index(): \Illuminate\Http\JsonResponse
+    public function index(Request $request)
     {
-        try {
-            $tasks = Auth::user()->tasks; // Fetch tasks for the authenticated user
-            return response()->json($tasks, 200);
-        } catch (\Exception $e) {
-            return $this->handleError('Error fetching tasks', $e);
-        }
-    }
+        $tasks = Task::where('user_id', $request->user()->id)->get();  // Adjust this based on your logic
+        return response()->json($tasks);
+    }    
 
     // Get a specific task
     public function show(int $id): \Illuminate\Http\JsonResponse
