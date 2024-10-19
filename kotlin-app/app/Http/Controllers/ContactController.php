@@ -21,7 +21,7 @@ class ContactController extends Controller
 
             // Validation rules
             $validationRules = [
-                'message' => 'required|min:1|max:500', // Added max length for message
+                'message' => 'required|min:1|max:1000', // Added max length for message
             ];
 
             // Validate incoming request data
