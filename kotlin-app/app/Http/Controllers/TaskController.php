@@ -49,7 +49,7 @@ class TaskController extends Controller
                 'end_time' => 'required|date_format:H:i', // Validation for end time
                 'repeat_days' => 'nullable|array', // Make repeat_days optional
                 'repeat_days.*' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
-                'category' => 'required|string|in:Home,Personal,Work,School',
+                'category' => 'required|string|in:Home,Personal,Work,Wishlist',
             ], [
                 'task_name.unique' => 'A task with this name already exists. Please choose a different name.',
             ]);
@@ -91,7 +91,7 @@ class TaskController extends Controller
                 'end_time' => 'required|date_format:H:i', // Validation for end time
                 'repeat_days' => 'nullable|array', // Make repeat_days optional
                 'repeat_days.*' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
-                'category' => 'required|string|in:Home,Personal,Work,School',
+                'category' => 'required|string|in:Personal,School,Work,Wishlist', 
             ]);
 
             $task->fill($validatedData);
