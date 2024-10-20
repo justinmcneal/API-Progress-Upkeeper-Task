@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Carbon\Carbon;
 
 class TaskController extends Controller
 {
@@ -38,82 +39,96 @@ class TaskController extends Controller
         }
     }
 
-    // Store a new task
-    public function store(Request $request): \Illuminate\Http\JsonResponse
-    {
-        try {
-            $request->validate([
-                'task_name' => 'required|string|max:255|unique:tasks,task_name',
-                'task_description' => 'required|max:255',
-                'end_date' => 'required|date', // Validation for end date
-                'end_time' => 'required|date_format:H:i', // Validation for end time
-                'repeat_days' => 'nullable|array', // Make repeat_days optional
-                'repeat_days.*' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
-                'category' => 'required|string|in:Home,Personal,Work,Wishlist',
-            ], [
-                'task_name.unique' => 'A task with this name already exists. Please choose a different name.',
-            ]);
+// Store a new task
+public function store(Request $request): \Illuminate\Http\JsonResponse
+{
+    try {
+        $request->validate([
+            'task_name' => 'required|string|max:255|unique:tasks,task_name',
+            'task_description' => 'required|max:255',
+            'end_date' => 'required|date|after_or_equal:today',
+            'end_time' => 'required|date_format:H:i',
+            'repeat_days' => 'nullable|array',
+            'repeat_days.*' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
+            'category' => 'required|string|in:Home,Personal,Work,Wishlist',
+        ], [
+            'task_name.unique' => 'A task with this name already exists. Please choose a different name.',
+        ]);
 
-            $task = Task::create([
-                'task_name' => $request->task_name,
-                'task_description' => $request->task_description,
-                'end_date' => $request->end_date, // Validation for end date
-                'end_time' => $request->end_time, // Validation for end time
-                'repeat_days' => $request->repeat_days ?? null, // Set to null if repeat_days is not provided
-                'category' => $request->category, // Include category in the create method
-                'user_id' => Auth::id(), // Using authenticated user's ID
-            ]);
+        // Combine date and time for full comparison
+        $fullEndDateTime = Carbon::parse($request->end_date . ' ' . $request->end_time);
 
-            return response()->json([
-                'message' => 'Task created successfully',
-                'task' => $task,
-            ], 201);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'message' => 'Validation error',
-                'errors' => $e->errors(),
-            ], 422);
-        } catch (\Exception $e) {
-            return $this->handleError('An error occurred while storing the task', $e);
+        if ($fullEndDateTime->isPast()) {
+            return response()->json(['message' => 'The end date and time must be in the future.'], 422);
         }
+
+        $task = Task::create([
+            'task_name' => $request->task_name,
+            'task_description' => $request->task_description,
+            'end_date' => $request->end_date,
+            'end_time' => $request->end_time,
+            'repeat_days' => $request->repeat_days ?? null,
+            'category' => $request->category,
+            'user_id' => Auth::id(),
+        ]);
+
+        return response()->json([
+            'message' => 'Task created successfully',
+            'task' => $task,
+        ], 201);
+    } catch (ValidationException $e) {
+        return response()->json([
+            'message' => 'Validation error',
+            'errors' => $e->errors(),
+        ], 422);
+    } catch (\Exception $e) {
+        return $this->handleError('An error occurred while storing the task', $e);
     }
+}
 
-    // Update an existing task
-    public function update(Request $request, int $id): \Illuminate\Http\JsonResponse
-    {
-        try {
-            $task = Task::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
+// Update an existing task
+public function update(Request $request, int $id): \Illuminate\Http\JsonResponse
+{
+    try {
+        $task = Task::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
 
-            $validatedData = $request->validate([
-                'task_name' => 'sometimes|string|max:255',
-                'task_description' => 'sometimes|max:255',
-                'end_date' => 'required|date', // Validation for end date
-                'end_time' => 'required|date_format:H:i', // Validation for end time
-                'repeat_days' => 'nullable|array', // Make repeat_days optional
-                'repeat_days.*' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
-                'category' => 'required|string|in:Personal,School,Work,Wishlist', 
-            ]);
+        $validatedData = $request->validate([
+            'task_name' => 'sometimes|string|max:255',
+            'task_description' => 'sometimes|max:255',
+            'end_date' => 'required|date|after_or_equal:today',
+            'end_time' => 'required|date_format:H:i',
+            'repeat_days' => 'nullable|array',
+            'repeat_days.*' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
+            'category' => 'required|string|in:Home,Personal,Work,Wishlist',
+        ]);
 
-            $task->fill($validatedData);
-            $task->save();
+        // Combine date and time for full comparison
+        $fullEndDateTime = Carbon::parse($request->end_date . ' ' . $request->end_time);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Task updated successfully',
-                'updated_task' => $task,
-            ], 200);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation error',
-                'errors' => $e->errors(),
-            ], 422);
-        } catch (ModelNotFoundException $e) {
-            return response()->json(['success' => false, 'message' => 'Task not found'], 404);
-        } catch (\Exception $e) {
-            return $this->handleError('An error occurred while updating the task', $e);
+        if ($fullEndDateTime->isPast()) {
+            return response()->json(['message' => 'The end date and time must be in the future.'], 422);
         }
+
+        $task->fill($validatedData);
+        $task->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Task updated successfully',
+            'updated_task' => $task,
+        ], 200);
+    } catch (ValidationException $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Validation error',
+            'errors' => $e->errors(),
+        ], 422);
+    } catch (ModelNotFoundException $e) {
+        return response()->json(['success' => false, 'message' => 'Task not found'], 404);
+    } catch (\Exception $e) {
+        return $this->handleError('An error occurred while updating the task', $e);
     }
+}
 
     // Delete a task
     public function destroy(int $id): \Illuminate\Http\JsonResponse
