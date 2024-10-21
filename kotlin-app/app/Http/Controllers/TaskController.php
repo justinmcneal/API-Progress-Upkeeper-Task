@@ -145,6 +145,30 @@ public function update(Request $request, int $id): \Illuminate\Http\JsonResponse
         }
     }
 
+    // Mark a task as complete or incomplete
+    public function complete(int $id): \Illuminate\Http\JsonResponse
+    {
+        try {
+            // Find the task for the authenticated user
+            $task = Task::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
+
+            // Toggle the is_checked status
+            $task->is_checked = !$task->is_checked;
+            $task->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Task completion status updated successfully',
+                'task' => $task,
+            ], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['success' => false, 'message' => 'Task not found'], 404);
+        } catch (\Exception $e) {
+            return $this->handleError('An error occurred while updating task completion status', $e);
+        }
+    }
+
+
     // Handle errors
     private function handleError(string $message, \Exception $exception): \Illuminate\Http\JsonResponse
     {

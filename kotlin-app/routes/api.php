@@ -49,4 +49,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store');  // Create a new task
     Route::put('/tasks/{id}', [TaskController::class, 'update'])->name('tasks.update'); // Update a task
     Route::delete('/tasks/{id}', [TaskController::class, 'destroy'])->name('tasks.destroy');  // Delete a task
+    Route::patch('/tasks/{id}/complete', [TaskController::class, 'complete'])->name('tasks.complete');  // Complete a task
+
 });

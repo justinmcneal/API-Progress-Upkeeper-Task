@@ -16,7 +16,8 @@ class Task extends Model
         'end_time',
         'repeat_days',
         'user_id',  // Include user_id in the fillable fields
-        'category'
+        'category',
+        'isChecked'  // Add isChecked to the fillable fields
     ];
 
     protected $casts = [
@@ -25,6 +26,7 @@ class Task extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'repeat_days' => 'array',
+        'isChecked' => 'boolean', // Cast isChecked to boolean if needed
     ];
 
     // Relationship with User
