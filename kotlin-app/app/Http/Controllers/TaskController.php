@@ -50,7 +50,7 @@ public function store(Request $request): \Illuminate\Http\JsonResponse
             'end_time' => 'required|date_format:H:i',
             'repeat_days' => 'nullable|array',
             'repeat_days.*' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
-            'category' => 'required|string|in:Home,Personal,Work,Wishlist',
+            'category' => 'required|string|in:Personal,School,Work,Wishlist',
         ], [
             'task_name.unique' => 'A task with this name already exists. Please choose a different name.',
         ]);
@@ -99,7 +99,7 @@ public function update(Request $request, int $id): \Illuminate\Http\JsonResponse
             'end_time' => 'required|date_format:H:i',
             'repeat_days' => 'nullable|array',
             'repeat_days.*' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
-            'category' => 'required|string|in:Home,Personal,Work,Wishlist',
+            'category' => 'required|string|in:Personal,School,Work,Wishlist',
         ]);
 
         // Combine date and time for full comparison
