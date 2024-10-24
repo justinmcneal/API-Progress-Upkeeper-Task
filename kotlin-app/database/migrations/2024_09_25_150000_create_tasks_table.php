@@ -17,7 +17,7 @@ return new class extends Migration
             $table->json('repeat_days')->nullable();
             $table->string('category'); // Remove default value
             $table->foreignId('user_id')->constrained()->onDelete('cascade');  // Add foreign key to users table
-            $table->boolean('is_checked')->default(false); // Add this line in your tasks migration
+            $table->boolean('isChecked')->default(false); // Add this line in your tasks migration
             $table->timestamps();
         });
     }
