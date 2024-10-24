@@ -50,7 +50,7 @@ public function store(Request $request): \Illuminate\Http\JsonResponse
             'end_time' => 'required|date_format:H:i',
             'repeat_days' => 'nullable|array',
             'repeat_days.*' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
-            'category' => 'required|string|in:Home,Personal,Work,Wishlist',
+            'category' => 'required|string|in:Personal,School,Work,Wishlist',
         ], [
             'task_name.unique' => 'A task with this name already exists. Please choose a different name.',
         ]);
@@ -99,7 +99,7 @@ public function update(Request $request, int $id): \Illuminate\Http\JsonResponse
             'end_time' => 'required|date_format:H:i',
             'repeat_days' => 'nullable|array',
             'repeat_days.*' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
-            'category' => 'required|string|in:Home,Personal,Work,Wishlist',
+            'category' => 'required|string|in:Personal,School,Work,Wishlist',
         ]);
 
         // Combine date and time for full comparison
@@ -151,11 +151,11 @@ public function update(Request $request, int $id): \Illuminate\Http\JsonResponse
         try {
             // Find the task for the authenticated user
             $task = Task::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
-
-            // Toggle the is_checked status
-            $task->is_checked = !$task->is_checked;
+    
+            // Toggle the completion status
+            $task->is_checked = !$task->is_checked; // You can adjust this based on your completion logic
             $task->save();
-
+    
             return response()->json([
                 'success' => true,
                 'message' => 'Task completion status updated successfully',
@@ -167,7 +167,7 @@ public function update(Request $request, int $id): \Illuminate\Http\JsonResponse
             return $this->handleError('An error occurred while updating task completion status', $e);
         }
     }
-
+    
 
     // Handle errors
     private function handleError(string $message, \Exception $exception): \Illuminate\Http\JsonResponse
