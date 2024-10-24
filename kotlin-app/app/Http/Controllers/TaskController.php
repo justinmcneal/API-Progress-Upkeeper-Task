@@ -21,12 +21,14 @@ class TaskController extends Controller
     // Get all incomplete tasks for the authenticated user
     public function index(Request $request)
     {
+        // Fetch all tasks for the authenticated user that are incomplete (isChecked = false)
         $tasks = Task::where('user_id', $request->user()->id)
-                  ->where('isChecked', false) // Ensure only incomplete tasks are fetched
-                  ->get();
-
-        return response()->json($tasks);
-    }    
+                      ->where('isChecked', false)
+                      ->get();
+    
+        // Return all tasks as a JSON response
+        return response()->json($tasks, 200);
+    }       
 
     // Get a specific task
     public function show(int $id): \Illuminate\Http\JsonResponse
@@ -156,13 +158,13 @@ class TaskController extends Controller
             // Find the task for the authenticated user
             $task = Task::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
             
-            // Toggle the completion status
-            $task->isChecked = !$task->isChecked; // Toggle the current state
+            // Set the task as completed
+            $task->isChecked = true; // Mark as complete, no toggle
             $task->save(); // Save the updated task
-
+    
             return response()->json([
                 'success' => true,
-                'message' => 'Task completion status updated successfully',
+                'message' => 'Task marked as completed successfully',
                 'task' => $task, // Return the updated task
             ], 200);
         } catch (ModelNotFoundException $e) {
@@ -170,12 +172,5 @@ class TaskController extends Controller
         } catch (\Exception $e) {
             return $this->handleError('An error occurred while updating task completion status', $e);
         }
-    }
-
-    // Handle errors
-    private function handleError(string $message, \Exception $exception): \Illuminate\Http\JsonResponse
-    {
-        Log::error($message, ['error' => $exception->getMessage()]);
-        return response()->json(['message' => 'An error occurred', 'error' => $exception->getMessage()], 500);
     }
 }
