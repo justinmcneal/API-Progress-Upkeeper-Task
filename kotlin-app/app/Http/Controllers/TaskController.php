@@ -21,14 +21,13 @@ class TaskController extends Controller
     // Get all incomplete tasks for the authenticated user
     public function index(Request $request)
     {
-        // Fetch all tasks for the authenticated user that are incomplete (isChecked = false)
-        $tasks = Task::where('user_id', $request->user()->id)
-                      ->where('isChecked', false)
-                      ->get();
+        // Fetch all tasks for the authenticated user without filtering for incomplete tasks
+        $tasks = Task::where('user_id', $request->user()->id)->get();
     
         // Return all tasks as a JSON response
         return response()->json($tasks, 200);
-    }       
+    }
+          
 
     // Get a specific task
     public function show(int $id): \Illuminate\Http\JsonResponse
