@@ -13,8 +13,8 @@ return [
     | framework needs to place the application's name in a notification or
     | any other location as required by the application or its packages.
     |
-    */
-
+    */ 
+    /*this is a test*/
     'name' => env('APP_NAME', 'Laravel'),
 
     /*
@@ -69,7 +69,8 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => 'Asia/Manila',
+
 
     /*
     |--------------------------------------------------------------------------
